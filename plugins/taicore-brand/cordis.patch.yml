@@ -1,0 +1,4 @@
+# taicore-brand bundle：挂载 Node 半边（空 apply；行为全在 client）
+- insert:
+    - id: taicore-brand
+      name: 'taicore-brand'
