@@ -61,3 +61,21 @@ if (Test-Path -LiteralPath $tray) {
 }
 Write-Host '[ok] ui title + tray icon'
 Write-Host '[done] branding applied'
+
+# 5) 商用合规：移除 GPL-2.0 的 dsh-pocket（手机同屏），并从配套清单摘除
+$pocketDir = [System.IO.Path]::Combine($Upstream, 'dsh-desktop', 'assets', 'plugins', 'dsh-pocket')
+if (Test-Path -LiteralPath $pocketDir) {
+  Remove-Item -LiteralPath $pocketDir -Recurse -Force
+  Write-Host '[ok] removed dsh-pocket (GPL-2.0)'
+}
+$regPath = [System.IO.Path]::Combine($Upstream, 'dsh-desktop', 'scripts', 'lib', 'companion-plugins.js')
+if (Test-Path -LiteralPath $regPath) {
+  $regText = Get-Content -LiteralPath $regPath -Raw
+  $entry = "  { id: 'dsh-pocket', name: 'dsh-pocket', shipsNodeModules: true },"
+  if ($regText.Contains($entry)) {
+    $regText = $regText.Replace($entry, "  // taicore: removed dsh-pocket (GPL-2.0) for commercial distribution")
+    Set-Content -LiteralPath $regPath -Value $regText -Encoding UTF8 -NoNewline
+    Write-Host '[ok] unregistered dsh-pocket'
+  }
+}
+Write-Host '[done] compliance pass'
