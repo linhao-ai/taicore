@@ -1,0 +1,67 @@
+# Azure DevOps 版构建流水线（无 GitHub 时的替代路径）
+# 用法：Azure DevOps → Pipelines → New pipeline → 选你的仓库 → 指向本文件 → Run
+# 前提：仓库里已有 branding/ 与 plugins/ 目录（即 seed 包内容）。
+
+trigger: none
+pr: none
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  UPSTREAM_REPO: 'https://github.com/myYangyunfan/dsh_desktop.git'
+
+steps:
+  - checkout: self
+    path: branding-repo
+    displayName: 'Checkout branding repo'
+
+  - powershell: |
+      git clone --depth 1 $(UPSTREAM_REPO) upstream
+      if (-not (Test-Path upstream/dsh-desktop)) { throw 'upstream clone failed' }
+    displayName: 'Clone upstream DSH Desktop'
+    workingDirectory: $(Build.SourcesDirectory)
+
+  - powershell: |
+      pwsh -NoProfile -File branding-repo/branding/apply-brand.ps1 -Upstream upstream -Branding branding-repo
+    displayName: 'Apply TAICORE branding'
+    workingDirectory: $(Build.SourcesDirectory)
+
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '24.x'
+    displayName: 'Install Node.js 24'
+
+  - powershell: |
+      rustup default stable
+      rustup target add x86_64-pc-windows-msvc
+      rustc --version; cargo --version
+    displayName: 'Ensure Rust toolchain'
+
+  - powershell: |
+      npm ci
+    displayName: 'npm ci (dsh-desktop)'
+    workingDirectory: $(Build.SourcesDirectory)/upstream/dsh-desktop
+
+  - powershell: |
+      npx --yes @tauri-apps/cli build --config src-tauri/src/app/tauri.conf.json --target x86_64-pc-windows-msvc
+    displayName: 'Build NSIS installer'
+    workingDirectory: $(Build.SourcesDirectory)/upstream/dsh-tauri
+
+  - powershell: |
+      $src = 'upstream/dsh-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis'
+      $exe = Get-ChildItem -Path $src -Filter '*.exe' -Recurse | Select-Object -First 1
+      if (-not $exe) { throw "installer not found under $src" }
+      New-Item -ItemType Directory -Force -Path out | Out-Null
+      Copy-Item $exe.FullName "out/TAICORE-Setup-$($exe.Name)"
+      (Get-FileHash "out/TAICORE-Setup-$($exe.Name)" -Algorithm SHA256).Hash.ToLower() |
+        Set-Content "out/TAICORE-Setup-$($exe.Name).sha256"
+    displayName: 'Collect artifact'
+    workingDirectory: $(Build.SourcesDirectory)
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: 'out'
+      ArtifactName: 'TAICORE-windows'
+      publishLocation: 'Container'
+    displayName: 'Publish installer'
