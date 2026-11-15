@@ -1,0 +1,63 @@
+# 把钛核品牌注入上游仓库（CI 或本地构建时调用）
+# 用法：pwsh -File branding/apply-brand.ps1 -Upstream upstream -Branding .
+
+param(
+  [string]$Upstream = 'upstream',
+  [string]$Branding = '.'
+)
+
+$ErrorActionPreference = 'Stop'
+
+function Join-3([string]$a, [string]$b, [string]$c) { [System.IO.Path]::Combine($a, $b, $c) }
+
+$appDir = Join-3 $Upstream 'dsh-tauri' 'src-tauri'
+if (-not (Test-Path -LiteralPath $appDir)) { throw "upstream not found: $appDir" }
+
+# 1) 壳层配置与图标
+$confDst = [System.IO.Path]::Combine($appDir, 'src', 'app', 'tauri.conf.json')
+$iconDir = [System.IO.Path]::Combine($appDir, 'icons')
+Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'tauri.conf.json')) $confDst -Force
+New-Item -ItemType Directory -Force -Path $iconDir | Out-Null
+Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'icon.ico')) ([System.IO.Path]::Combine($iconDir, 'icon.ico')) -Force
+Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'icon.png')) ([System.IO.Path]::Combine($iconDir, 'icon.png')) -Force
+Write-Host '[ok] tauri.conf.json + icons'
+
+# 2) 品牌插件进 assets/plugins
+$pluginSrc = [System.IO.Path]::Combine($Branding, 'plugins', 'taicore-brand')
+$pluginsDir = [System.IO.Path]::Combine($Upstream, 'dsh-desktop', 'assets', 'plugins')
+$pluginDst = [System.IO.Path]::Combine($pluginsDir, 'taicore-brand')
+New-Item -ItemType Directory -Force -Path $pluginDst | Out-Null
+Copy-Item -Path ([System.IO.Path]::Combine($pluginSrc, '*')) -Destination $pluginDst -Recurse -Force
+Write-Host '[ok] plugin -> assets/plugins/taicore-brand'
+
+# 3) 注册进配套插件清单（否则首启不会同步进 profile）
+$reg = [System.IO.Path]::Combine($Upstream, 'dsh-desktop', 'scripts', 'lib', 'companion-plugins.js')
+if (Test-Path -LiteralPath $reg) {
+  $text = Get-Content -LiteralPath $reg -Raw
+  if ($text -notmatch "id:\s*'taicore-brand'") {
+    $anchor = "  { id: 'ds-harness-remote', name: 'ds-harness-remote', shipsNodeModules: true },"
+    if ($text.Contains($anchor)) {
+      $text = $text.Replace($anchor, $anchor + "`r`n  // 钛核 TAICORE 品牌包（客户端 slot + 主题 token）`r`n  { id: 'taicore-brand', name: 'taicore-brand' },")
+      Set-Content -LiteralPath $reg -Value $text -Encoding UTF8 -NoNewline
+      Write-Host '[ok] registered taicore-brand in companion list'
+    } else {
+      Write-Host '[warn] companion anchor not found; brand pack must be installed manually after install'
+    }
+  } else {
+    Write-Host '[ok] companion list already contains taicore-brand'
+  }
+}
+
+# 4) 运行时资源：浏览器标题与托盘图标
+$uiIndex = [System.IO.Path]::Combine($Upstream, 'ui', 'index.html')
+if (Test-Path -LiteralPath $uiIndex) {
+  $html = Get-Content -LiteralPath $uiIndex -Raw
+  $html = $html -replace '<title>[^<]*</title>', '<title>钛核 TAICORE</title>'
+  Set-Content -LiteralPath $uiIndex -Value $html -Encoding UTF8 -NoNewline
+}
+$tray = [System.IO.Path]::Combine($Upstream, 'dsh-desktop', 'assets', 'tray-icon.png')
+if (Test-Path -LiteralPath $tray) {
+  Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'icon.png')) $tray -Force
+}
+Write-Host '[ok] ui title + tray icon'
+Write-Host '[done] branding applied'
