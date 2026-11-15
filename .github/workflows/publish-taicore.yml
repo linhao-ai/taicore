@@ -36,10 +36,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release view "${{ inputs.version }}" || gh release create "${{ inputs.version }}" \
+          gh release view "${{ inputs.version }}" --repo "${{ github.repository }}" || gh release create "${{ inputs.version }}" --repo "${{ github.repository }}" \
             --title "TAICORE ${{ inputs.version }}" \
             --notes "钛核 TAICORE Windows 安装包（Tauri + 内置内核，MIT 上游构建）" \
             --prerelease
           for f in dist/*; do
-            gh release upload "${{ inputs.version }}" "$f" --clobber
+            gh release upload "${{ inputs.version }}" "$f" --repo "${{ github.repository }}" --clobber
           done
