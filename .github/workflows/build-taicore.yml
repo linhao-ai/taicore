@@ -1,0 +1,60 @@
+name: build-taicore
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout upstream (DSH Desktop)
+        uses: actions/checkout@v4
+        with:
+          repository: myYangyunfan/dsh_desktop
+          path: upstream
+          fetch-depth: 1
+
+      - name: Checkout branding (this repo)
+        uses: actions/checkout@v4
+        with:
+          path: branding-repo
+
+      - name: Apply TAICORE branding
+        shell: pwsh
+        run: pwsh -NoProfile -File branding-repo/branding/apply-brand.ps1 -Upstream upstream -Branding branding-repo
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Install JS deps
+        working-directory: upstream/dsh-desktop
+        run: npm ci
+
+      - name: Build installer
+        working-directory: upstream/dsh-tauri
+        run: npx --yes @tauri-apps/cli build --config src-tauri/src/app/tauri.conf.json --target x86_64-pc-windows-msvc
+
+      - name: Collect artifact
+        shell: pwsh
+        run: |
+          $src = 'upstream/dsh-tauri/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis'
+          $exe = Get-ChildItem -Path $src -Filter '*.exe' -Recurse | Select-Object -First 1
+          if (-not $exe) { throw "installer not found under $src" }
+          New-Item -ItemType Directory -Force -Path out | Out-Null
+          $dst = "out/TAICORE-Setup-$($exe.Name)"
+          Copy-Item $exe.FullName $dst
+          (Get-FileHash $dst -Algorithm SHA256).Hash.ToLower() | Set-Content "$dst.sha256"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TAICORE-windows
+          path: out/*
+          retention-days: 30
