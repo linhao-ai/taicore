@@ -79,3 +79,25 @@ if (Test-Path -LiteralPath $regPath) {
   }
 }
 Write-Host '[done] compliance pass'
+
+# 5) 授权插件进 assets/plugins
+$licSrc = [System.IO.Path]::Combine($Branding, 'plugins', 'taicore-license')
+if (Test-Path -LiteralPath $licSrc) {
+  $licDst = [System.IO.Path]::Combine($Upstream, 'dsh-desktop', 'assets', 'plugins', 'taicore-license')
+  New-Item -ItemType Directory -Force -Path $licDst | Out-Null
+  Copy-Item -Path ([System.IO.Path]::Combine($licSrc, '*')) -Destination $licDst -Recurse -Force
+  Write-Host '[ok] plugin -> assets/plugins/taicore-license'
+  if ((Test-Path -LiteralPath $reg) -and ((Get-Content -LiteralPath $reg -Raw) -notmatch "id:\s*'taicore-license'")) {
+    $t2 = Get-Content -LiteralPath $reg -Raw
+    $anchor2 = "  // 钛核 TAICORE 品牌包（客户端 slot + 主题 token）"
+    if ($t2.Contains($anchor2)) {
+      $t2 = $t2.Replace($anchor2, "  { id: 'taicore-license', name: 'taicore-license' },`r`n" + $anchor2)
+      Set-Content -LiteralPath $reg -Value $t2 -Encoding UTF8 -NoNewline
+      Write-Host '[ok] registered taicore-license in companion list'
+    } else {
+      $t2 = $t2.Replace("  { id: 'taicore-brand', name: 'taicore-brand' },", "  { id: 'taicore-license', name: 'taicore-license' },`r`n  { id: 'taicore-brand', name: 'taicore-brand' },")
+      Set-Content -LiteralPath $reg -Value $t2 -Encoding UTF8 -NoNewline
+      Write-Host '[ok] registered taicore-license (fallback anchor)'
+    }
+  }
+}
