@@ -66,6 +66,24 @@ jobs:
             if (Test-Path $dir.FullName) { Remove-Item $dir.FullName -Recurse -Force -ErrorAction SilentlyContinue }
           }
           Write-Host '[slim] done'
+      - name: Bundle video workshop
+        shell: pwsh
+        run: |
+          $pp = 'upstream/dsh-tauri/pp'
+          if (-not (Test-Path $pp)) { throw "payload dir not found: $pp" }
+          $dst = Join-Path $pp 'video-workshop'
+          if (Test-Path $dst) { Remove-Item $dst -Recurse -Force }
+          New-Item -ItemType Directory -Force -Path $dst | Out-Null
+          Copy-Item -Recurse -Force 'video-workshop/*' $dst
+          $tgz = Join-Path $env:TEMP 'ffmpeg-win64.tgz'
+          Invoke-WebRequest -Uri 'https://registry.npmmirror.com/@ffmpeg-installer/win32-x64/-/win32-x64-4.1.0.tgz' -OutFile $tgz
+          $tmp = Join-Path $env:TEMP 'ffmpeg-x'
+          Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $tmp | Out-Null
+          tar -xzf $tgz -C $tmp
+          New-Item -ItemType Directory -Force -Path (Join-Path $dst 'bin') | Out-Null
+          Copy-Item (Join-Path $tmp 'package/ffmpeg.exe') (Join-Path $dst 'bin/ffmpeg.exe') -Force
+          Write-Host '[bundle] video workshop + ffmpeg ready'
       - name: Build installer
         working-directory: upstream/dsh-tauri
         run: npx --yes @tauri-apps/cli build --config src-tauri/src/app/tauri.conf.json --target x86_64-pc-windows-msvc
