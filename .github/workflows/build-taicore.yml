@@ -48,6 +48,24 @@ jobs:
         working-directory: upstream
         run: bash dsh-tauri/scripts/stage-payload.sh
 
+      - name: Slim payload (drop npm, source maps, tests)
+        shell: pwsh
+        run: |
+          $pp = 'upstream/dsh-tauri/pp'
+          if (-not (Test-Path $pp)) { throw "payload dir not found: $pp" }
+          $npmDir = Join-Path $pp 'vendor/npm'
+          if (Test-Path $npmDir) {
+            Remove-Item $npmDir -Recurse -Force
+            Write-Host '[slim] removed vendor/npm'
+          }
+          $maps = Get-ChildItem $pp -Recurse -File -Include '*.map' -ErrorAction SilentlyContinue
+          if ($maps) { $maps | Remove-Item -Force; Write-Host "[slim] removed $($maps.Count) source maps" }
+          $docs = Get-ChildItem (Join-Path $pp 'node_modules') -Recurse -File -Include '*.md','*.d.ts' -ErrorAction SilentlyContinue
+          if ($docs) { $docs | Remove-Item -Force; Write-Host "[slim] removed $($docs.Count) docs/dts" }
+          foreach ($dir in (Get-ChildItem $pp -Recurse -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -in @('test','tests','__tests__','.github') })) {
+            if (Test-Path $dir.FullName) { Remove-Item $dir.FullName -Recurse -Force -ErrorAction SilentlyContinue }
+          }
+          Write-Host '[slim] done'
       - name: Build installer
         working-directory: upstream/dsh-tauri
         run: npx --yes @tauri-apps/cli build --config src-tauri/src/app/tauri.conf.json --target x86_64-pc-windows-msvc
