@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用量中心 · 钛核 TAICORE</title>
+<style>
+  :root{--bg:#05070D;--panel:#0B101C;--line:#1B2540;--cyan:#00E0FF;--violet:#7A5CFF;--lime:#9BFF6A;--mag:#FF2E88;
+    --text:#E9EFFA;--sub:#9AA9C2;--dim:#5C6B85;--grad:linear-gradient(135deg,#00E0FF,#7A5CFF)}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Inter","HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;font-size:14px;line-height:1.65}
+  #bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;opacity:.35;pointer-events:none}
+  .wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:26px 22px 80px}
+  header{display:flex;align-items:center;gap:12px;padding:6px 0 22px}
+  .logo{width:30px;height:30px}
+  .brand b{font-size:16px}
+  .brand small{display:block;font-size:9px;letter-spacing:.32em;color:var(--dim)}
+  .sp{flex:1}
+  .range{display:flex;gap:6px}
+  .range button{background:rgba(255,255,255,.04);border:1px solid #1C2740;color:var(--sub);padding:7px 13px;border-radius:9px;font-size:12.5px;cursor:pointer}
+  .range button.on{background:var(--grad);color:#04121A;border-color:transparent;font-weight:700}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+  .kpi{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.012));
+    border:1px solid var(--line);border-radius:15px;padding:18px;overflow:hidden}
+  .kpi:after{content:"";position:absolute;right:-30px;top:-30px;width:90px;height:90px;border-radius:50%;
+    background:radial-gradient(circle,rgba(0,224,255,.22),transparent 70%)}
+  .kpi .k{font-size:12px;color:var(--sub);margin-bottom:6px}
+  .kpi .v{font-size:26px;font-weight:850;letter-spacing:-.02em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .kpi .u{font-size:12px;color:var(--dim);margin-top:2px}
+  .grid2{display:grid;grid-template-columns:1.45fr 1fr;gap:16px;margin-bottom:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+  .card h3{margin:0 0 14px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .card h3:before{content:"";width:4px;height:14px;border-radius:2px;background:var(--grad)}
+  canvas{width:100%;height:190px;display:block}
+  .models{display:flex;flex-direction:column;gap:10px}
+  .model-row{display:flex;align-items:center;gap:10px;font-size:12.5px}
+  .model-row .nm{flex:0 0 128px;color:#CFDDF0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .model-row .track{flex:1;height:8px;border-radius:99px;background:#0E1626;overflow:hidden}
+  .model-row .fill{height:100%;border-radius:99px;background:var(--grad);transition:width .5s}
+  .model-row .cv{flex:0 0 92px;text-align:right;color:var(--dim)}
+  table{width:100%;border-collapse:collapse;font-size:12.8px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid #141C2E}
+  th{color:var(--dim);font-weight:600;font-size:11.5px;letter-spacing:.04em}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .bal{display:flex;flex-direction:column;gap:12px}
+  .bal .big{font-size:30px;font-weight:850;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .bal .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  input[type=password]{flex:1;min-width:160px;background:#060A12;border:1px solid #1C2740;border-radius:9px;color:#DCE7F5;padding:9px 11px;font-size:12.5px;font-family:inherit}
+  .btn{border:0;cursor:pointer;padding:9px 16px;border-radius:9px;font-weight:700;font-size:12.5px;background:var(--grad);color:#04121A}
+  .btn.ghost{background:rgba(255,255,255,.05);color:var(--text);border:1px solid #26344F}
+  .btn:disabled{opacity:.5;cursor:wait}
+  .hint{font-size:11.5px;color:var(--dim);line-height:1.8}
+  .tag{font-size:11px;color:#9BE9FF;border:1px solid rgba(0,224,255,.28);background:rgba(0,224,255,.07);padding:3px 9px;border-radius:99px}
+  .empty{color:var(--dim);font-size:12.5px;padding:16px 0}
+  @media (max-width:900px){.kpis{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div class="wrap">
+  <header>
+    <svg class="logo" viewBox="0 0 96 96"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00E0FF"/><stop offset="1" stop-color="#7A5CFF"/></linearGradient></defs>
+      <path d="M88 48 L68 83 L28 83 L8 48 L28 13 L68 13 Z" fill="none" stroke="url(#g)" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M54.5 24 L39.5 51 H48.5 L43.5 72 L60.5 43.5 H51 Z" fill="#D9FBFF"/></svg>
+    <div class="brand"><b>用量中心</b><small>TAICORE</small></div>
+    <div class="sp"></div>
+    <div class="range" id="range">
+      <button data-days="1">今日</button>
+      <button data-days="7" class="on">近 7 天</button>
+      <button data-days="30">近 30 天</button>
+      <button data-days="0">全部</button>
+    </div>
+  </header>
+
+  <div class="kpis">
+    <div class="kpi"><div class="k">Token 总量</div><div class="v" id="k-tokens">—</div><div class="u" id="k-calls">— 次调用</div></div>
+    <div class="kpi"><div class="k">估算费用</div><div class="v" id="k-cost">—</div><div class="u">按模型单价折算</div></div>
+    <div class="kpi"><div class="k">输入 / 输出</div><div class="v" id="k-io">—</div><div class="u">含缓存命中</div></div>
+    <div class="kpi"><div class="k">缓存命中</div><div class="v" id="k-cache">—</div><div class="u">命中越多越省钱</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>每日用量</h3>
+      <canvas id="chart"></canvas>
+      <div class="hint" id="chartHint"></div>
+    </div>
+    <div class="card">
+      <h3>模型分布</h3>
+      <div class="models" id="models"><div class="empty">暂无数据</div></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>最近调用</h3>
+      <table>
+        <thead><tr><th>时间</th><th>模型</th><th class="num">输入</th><th class="num">缓存</th><th class="num">输出</th><th class="num">估算</th></tr></thead>
+        <tbody id="records"><tr><td colspan="6" class="empty">加载中…</td></tr></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>余额与充值</h3>
+      <div class="bal" id="bal">
+        <div class="big" id="bal-val">—</div>
+        <div class="hint" id="bal-meta">读取中…</div>
+        <div class="row">
+          <input type="password" id="key" placeholder="粘贴你的模型 API Key（只保存在本机）">
+          <button class="btn" id="saveKey">保存</button>
+        </div>
+        <div class="row">
+          <button class="btn ghost" id="refreshBal">刷新余额</button>
+          <a class="btn ghost" id="topup" href="#" target="_blank" rel="noreferrer" style="text-decoration:none;padding:9px 16px">前往充值</a>
+        </div>
+        <div class="hint">
+          钛核不代收模型费用。充值请到模型厂商官网，Key 只保存在本机 <code>~/.dsh/taicore/provider-keys.json</code>。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>说明</h3>
+    <div class="hint">
+      数据来自本机 <code>~/.dsh/bot/usage.sqlite</code>，只读取、不上传。<br>
+      费用为按公开单价的<b>估算值</b>，实际以模型厂商账单为准；缓存命中部分按低价计。<br>
+      充值记录由模型厂商维护，钛核无法读取，这里只提供余额查询与充值入口。
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+let days = 7;
+
+/* 背景粒子 */
+(function(){
+  const cv=document.getElementById('bg');const ctx=cv.getContext('2d');let w,h,dots=[];
+  const DPR=Math.min(devicePixelRatio||1,2);
+  function resize(){w=cv.clientWidth;h=cv.clientHeight;cv.width=w*DPR;cv.height=h*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+    const n=Math.min(60,Math.round(w*h/26000));dots=[];for(let i=0;i<n;i++)dots.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,r:Math.random()*1.4+.5});}
+  function tick(){ctx.clearRect(0,0,w,h);for(let i=0;i<dots.length;i++){const d=dots[i];d.x+=d.vx;d.y+=d.vy;
+    if(d.x<-10)d.x=w+10;if(d.x>w+10)d.x=-10;if(d.y<-10)d.y=h+10;if(d.y>h+10)d.y=-10;
+    ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,7);ctx.fillStyle='rgba(0,224,255,.5)';ctx.fill();
+    for(let j=i+1;j<dots.length;j++){const e=dots[j],dx=d.x-e.x,dy=d.y-e.y,ds=dx*dx+dy*dy;
+      if(ds<13000){ctx.beginPath();ctx.moveTo(d.x,d.y);ctx.lineTo(e.x,e.y);ctx.strokeStyle='rgba(122,92,255,'+(0.14*(1-ds/13000)).toFixed(3)+')';ctx.stroke();}}}
+    requestAnimationFrame(tick);}
+  resize();tick();addEventListener('resize',resize);
+})();
+
+function fmt(n){ if(n>=1e6) return (n/1e6).toFixed(2)+'M'; if(n>=1e4) return (n/1e3).toFixed(1)+'K'; return String(n||0); }
+function money(n){ return '¥' + (n>=100?n.toFixed(1):n.toFixed(2)); }
+
+async function load() {
+  const s = await (await fetch('/api/summary?days='+days)).json();
+  if (s.error) { $('#k-tokens').textContent='读取失败'; $('#chartHint').textContent=s.error; return; }
+  const c = s.current;
+  $('#k-tokens').textContent = fmt(c.tokens);
+  $('#k-calls').textContent = c.calls + ' 次调用';
+  $('#k-cost').textContent = money(c.cost);
+  $('#k-io').textContent = fmt(c.input) + ' / ' + fmt(c.output);
+  $('#k-cache').textContent = fmt(c.cache);
+
+  const list = s.current.days.slice(-30);
+  $('#chartHint').textContent = list.length ? `共 ${list.length} 天有调用记录 · 累计 ${fmt(s.all.tokens)} tokens · ${s.all.calls} 次调用` : '还没有调用记录';
+  drawChart(list);
+
+  const models = s.current.models;
+  $('#models').innerHTML = models.length ? models.map((m) => {
+    const pct = Math.max(2, Math.round((m.cost / (models[0].cost || 1)) * 100));
+    return `<div class="model-row"><div class="nm" title="${m.model}">${m.model}</div>
+      <div class="track"><div class="fill" style="width:${pct}%"></div></div>
+      <div class="cv">${fmt(m.input + m.output)} · ${money(m.cost)}</div></div>`;
+  }).join('') : '<div class="empty">暂无数据</div>';
+
+  const r = await (await fetch('/api/records?limit=60')).json();
+  $('#records').innerHTML = (r.records || []).slice(0, 12).map((x) => {
+    const t = new Date(x.time);
+    const ts = `${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')} ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+    return `<tr><td>${ts}</td><td>${x.model || '-'}</td><td class="num">${fmt(x.input)}</td><td class="num">${fmt(x.cache_read)}</td><td class="num">${fmt(x.output)}</td><td class="num">${money(x.cost)}</td></tr>`;
+  }).join('') || '<tr><td colspan="6" class="empty">暂无记录</td></tr>';
+}
+
+function drawChart(list) {
+  const cv = document.getElementById('chart');
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const w = cv.clientWidth, h = 190;
+  cv.width = w * dpr; cv.height = h * dpr;
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  if (!list.length) return;
+  const max = Math.max(...list.map((d) => d.input + d.output), 1);
+  const pad = 8, bw = (w - pad * 2) / list.length;
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, 'rgba(0,224,255,.95)');
+  grad.addColorStop(1, 'rgba(122,92,255,.35)');
+  list.forEach((d, i) => {
+    const v = d.input + d.output;
+    const bh = Math.max(2, (v / max) * (h - 34));
+    const ww = Math.max(6, Math.min(52, bw * 0.62));
+    const x = pad + i * bw + (bw - ww) / 2;
+    const y = h - 22 - bh;
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x, y, ww, bh, 4) : ctx.rect(x, y, ww, bh);
+    ctx.fill();
+    if (list.length <= 14) {
+      ctx.fillStyle = 'rgba(154,169,194,.8)';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(d.day.slice(5), x + ww / 2, h - 8);
+    }
+  });
+  ctx.strokeStyle = 'rgba(255,255,255,.06)';
+  ctx.beginPath(); ctx.moveTo(0, h - 22); ctx.lineTo(w, h - 22); ctx.stroke();
+}
+
+async function loadBalance() {
+  const provs = await (await fetch('/api/providers')).json();
+  const p = provs.find((x) => x.balanceApi) || provs[0] || { id: 'deepseek-account', name: 'DeepSeek', url: 'https://platform.deepseek.com/top_up' };
+  $('#topup').href = p.url || '#';
+  const b = await (await fetch('/api/balance?provider=' + encodeURIComponent(p.id))).json();
+  if (!b.supported) {
+    $('#bal-val').textContent = '本地模型';
+    $('#bal-meta').textContent = (b.name || '') + ' 无余额查询接口（本地运行不计费）';
+    return;
+  }
+  if (b.needKey) {
+    $('#bal-val').textContent = '未绑定';
+    $('#bal-meta').textContent = '粘贴 ' + b.name + ' 的 API Key 后可查询余额';
+    return;
+  }
+  if (b.error) {
+    $('#bal-val').textContent = '查询失败';
+    $('#bal-meta').textContent = b.error;
+    return;
+  }
+  const infos = (b.balance && b.balance.balance_infos) || [];
+  const total = infos.reduce((s, x) => s + Number(x.total_balance || 0), 0);
+  $('#bal-val').textContent = '¥' + total.toFixed(2);
+  $('#bal-meta').textContent = b.name + ' · ' + (infos.map((x) => x.currency + ' 可用 ' + x.total_balance).join(' / ') || '无数据');
+}
+
+$('#saveKey').addEventListener('click', async () => {
+  const key = $('#key').value.trim();
+  const provs = await (await fetch('/api/providers')).json();
+  const p = provs.find((x) => x.balanceApi) || { id: 'deepseek-account' };
+  await fetch('/api/keys', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provider: p.id, key }) });
+  $('#key').value = '';
+  loadBalance();
+});
+$('#refreshBal').addEventListener('click', loadBalance);
+
+document.querySelectorAll('#range button').forEach((b) => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#range button').forEach((x) => x.classList.remove('on'));
+    b.classList.add('on');
+    days = Number(b.dataset.days);
+    load();
+  });
+});
+
+load();
+loadBalance();
+</script>
+</body>
+</html>
