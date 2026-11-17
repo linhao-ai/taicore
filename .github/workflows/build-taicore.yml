@@ -98,6 +98,14 @@ jobs:
             Copy-Item -Recurse -Force 'branding-repo/mobile-gateway/*' $dst3
             Write-Host '[bundle] mobile gateway ready'
           }
+          if (Test-Path 'branding-repo/get-clients') {
+            $dst4 = Join-Path $pp 'get-clients'
+            if (Test-Path $dst4) { Remove-Item $dst4 -Recurse -Force }
+            New-Item -ItemType Directory -Force -Path $dst4 | Out-Null
+            Copy-Item -Recurse -Force 'branding-repo/get-clients/*' $dst4
+            Write-Host '[bundle] get-clients ready'
+          }
+
 
 
       - name: Build installer

@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>获客工作台 · 钛核 TAICORE</title>
+<style>
+  :root{--bg:#05070D;--panel:#0B101C;--line:#1B2540;--cyan:#00E0FF;--violet:#7A5CFF;--ok:#22D3A5;--warn:#FFB020;
+    --text:#E9EFFA;--sub:#9AA9C2;--dim:#5C6B85;--grad:linear-gradient(135deg,#00E0FF,#7A5CFF)}
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(70% 60% at 50% -10%,rgba(0,224,255,.10),transparent),var(--bg);color:var(--text);
+    font-family:"Inter","HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;font-size:14px;line-height:1.65}
+  .wrap{max-width:1060px;margin:0 auto;padding:24px 18px 80px}
+  header{display:flex;align-items:center;gap:12px;padding:6px 0 18px}
+  .logo{width:30px;height:30px}
+  .brand b{font-size:16px}.brand small{display:block;font-size:9px;letter-spacing:.32em;color:var(--dim)}
+  .sp{flex:1}
+  .tabs{display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid #16203A;padding-bottom:10px}
+  .tab{padding:9px 15px;border-radius:10px;cursor:pointer;color:var(--sub);font-weight:650;font-size:13.5px}
+  .tab.on{background:rgba(0,224,255,.1);color:#DFF9FF;box-shadow:inset 0 0 0 1px rgba(0,224,255,.25)}
+  .pane{display:none}.pane.on{display:block}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:18px;margin-bottom:14px}
+  .card h3{margin:0 0 12px;font-size:14.5px;display:flex;align-items:center;gap:8px}
+  .card h3:before{content:"";width:4px;height:14px;border-radius:2px;background:var(--grad)}
+  label{display:block;font-size:12px;color:var(--sub);margin:10px 0 5px}
+  input,select,textarea{width:100%;background:#070B14;border:1px solid #1C2740;border-radius:9px;color:#DCE7F5;padding:9px 11px;font-size:13px;font-family:inherit}
+  textarea{min-height:70px;resize:vertical}
+  .row{display:flex;gap:10px;flex-wrap:wrap}.row>div{flex:1;min-width:170px}
+  button{border:0;cursor:pointer;padding:10px 16px;border-radius:10px;background:var(--grad);color:#04121A;font-weight:750;font-size:13px;font-family:inherit}
+  button.ghost{background:rgba(255,255,255,.06);color:var(--text);border:1px solid #26344F}
+  button.mini{padding:6px 10px;font-size:12px}
+  button:disabled{opacity:.55;cursor:wait}
+  .msg{font-size:12.5px;margin-top:8px;min-height:18px}.msg.ok{color:var(--ok)}.msg.err{color:#FF6B7A}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .chip{font-size:12px;color:#9BE9FF;border:1px solid rgba(0,224,255,.28);background:rgba(0,224,255,.07);padding:5px 11px;border-radius:99px;cursor:pointer}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .chan{border:1px solid #1C2740;border-radius:11px;padding:12px 14px;background:#0A0F1A;margin-bottom:9px}
+  .chan b{font-size:13.5px}.chan p{margin:4px 0 0;font-size:12.5px;color:var(--sub)}
+  .chan .act{margin-top:6px;font-size:12.5px;color:#9BE9FF}
+  .plan{list-style:none;margin:0;padding:0}
+  .plan li{padding:8px 0 8px 26px;position:relative;font-size:13px;color:#CFDDF0;border-bottom:1px dashed #16203A}
+  .plan li:before{content:attr(data-d);position:absolute;left:0;top:8px;font-size:11px;color:#00E0FF;font-weight:800}
+  .script{background:#070B14;border:1px solid #1C2740;border-radius:10px;padding:11px 13px;font-size:12.8px;color:#CFDDF0;white-space:pre-wrap;margin-bottom:8px}
+  .script b{display:block;font-size:11px;color:var(--dim);margin-bottom:5px;letter-spacing:.06em}
+  table{width:100%;border-collapse:collapse;font-size:12.8px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid #141C2E}
+  th{color:var(--dim);font-weight:600;font-size:11.5px}
+  .st{padding:3px 9px;border-radius:99px;font-size:11.5px}
+  .st.new{background:rgba(255,176,32,.12);color:var(--warn)}
+  .st.contacted{background:rgba(0,224,255,.12);color:var(--cyan)}
+  .st.replied{background:rgba(122,92,255,.15);color:#C9BEFF}
+  .st.visited{background:rgba(34,211,165,.12);color:var(--ok)}
+  .st.won{background:rgba(34,211,165,.22);color:#9BFFD0}
+  .st.lost{background:rgba(255,107,122,.12);color:#FF8A96}
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  .stat{border:1px solid var(--line);border-radius:12px;padding:14px;background:linear-gradient(180deg,rgba(255,255,255,.04),transparent)}
+  .stat b{display:block;font-size:24px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .stat span{font-size:11.5px;color:var(--sub)}
+  .muted{color:var(--dim);font-size:12px}
+  .empty{padding:26px;text-align:center;color:var(--dim)}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <svg class="logo" viewBox="0 0 96 96"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00E0FF"/><stop offset="1" stop-color="#7A5CFF"/></linearGradient></defs>
+      <path d="M88 48 L68 83 L28 83 L8 48 L28 13 L68 13 Z" fill="none" stroke="url(#g)" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M54.5 24 L39.5 51 H48.5 L43.5 72 L60.5 43.5 H51 Z" fill="#D9FBFF"/></svg>
+    <div class="brand"><b>获客工作台</b><small>TAICORE</small></div>
+    <div class="sp"></div>
+    <button class="ghost mini" id="setBtn">模型设置</button>
+  </header>
+
+  <div class="tabs">
+    <div class="tab on" data-pane="plan">获客方案</div>
+    <div class="tab" data-pane="leads">线索管理</div>
+    <div class="tab" data-pane="board">转化看板</div>
+  </div>
+
+  <!-- 获客方案 -->
+  <div class="pane on" id="pane-plan">
+    <div class="card">
+      <h3>给你的生意做一份 7 天获客方案</h3>
+      <div class="row">
+        <div><label>行业</label><input id="f-industry" type="text" placeholder="例：牛肉面馆 / 美甲店 / 五金批发"></div>
+        <div><label>城市 / 区域</label><input id="f-city" type="text" placeholder="例：昆明 五华区"></div>
+        <div><label>客单价（元）</label><input id="f-price" type="text" placeholder="例：35"></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <div><label>补充（可选）</label><input id="f-audience" type="text" placeholder="例：主打学生客群 / 只做附近三公里"></div>
+        <div><label>最大痛点（可选）</label><input id="f-pain" type="text" placeholder="例：新店没人知道 / 复购低"></div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:9px;align-items:center">
+        <button id="genPlan">生成获客方案</button>
+        <span class="msg" id="planMsg"></span>
+      </div>
+    </div>
+    <div id="planOut"></div>
+  </div>
+
+  <!-- 线索 -->
+  <div class="pane" id="pane-leads">
+    <div class="card">
+      <h3>添加线索</h3>
+      <div class="row">
+        <div><label>客户 / 店铺名</label><input id="l-name" type="text" placeholder="例：张姐水果店"></div>
+        <div><label>来源渠道</label><input id="l-channel" type="text" placeholder="例：小红书 / 老客介绍"></div>
+        <div><label>联系方式</label><input id="l-contact" type="text" placeholder="微信 / 电话"></div>
+      </div>
+      <label>备注</label><input id="l-note" type="text" placeholder="例：想上短视频但不会拍">
+      <div style="margin-top:12px;display:flex;gap:9px;align-items:center">
+        <button id="addLead">添加</button>
+        <span class="msg" id="leadMsg"></span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>线索列表</h3>
+      <table>
+        <thead><tr><th>客户</th><th>来源</th><th>状态</th><th>更新时间</th><th>操作</th></tr></thead>
+        <tbody id="leadRows"><tr><td colspan="5" class="empty">暂无线索</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 看板 -->
+  <div class="pane" id="pane-board">
+    <div class="card">
+      <h3>转化看板</h3>
+      <div class="stats" id="boardStats"></div>
+      <p class="muted" style="margin-top:12px">建议：每周一更新一次，重点看「联系→回复」和「到店→成交」两段的流失。</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+const $ = (s) => document.querySelector(s);
+const STATUS = { new: '待联系', contacted: '已联系', replied: '已回复', visited: '已到店', won: '已成交', lost: '已流失' };
+
+document.querySelectorAll('.tab').forEach((t) => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach((x) => x.classList.remove('on'));
+    document.querySelectorAll('.pane').forEach((x) => x.classList.remove('on'));
+    t.classList.add('on');
+    document.getElementById('pane-' + t.dataset.pane).classList.add('on');
+    if (t.dataset.pane === 'board') loadBoard();
+    if (t.dataset.pane === 'leads') loadLeads();
+  });
+});
+
+/* 设置 */
+$('#setBtn').addEventListener('click', async () => {
+  const s = await (await fetch(API + '/api/settings')).json();
+  const key = prompt('粘贴你的 DeepSeek API Key（留空则使用内置模板方案）：', '');
+  if (key === null) return;
+  await fetch(API + '/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ apiKey: key }) });
+  alert(key ? '已保存，之后方案会由 AI 生成' : '已清空，将使用内置模板');
+});
+
+/* 方案 */
+$('#genPlan').addEventListener('click', async () => {
+  const msg = $('#planMsg');
+  msg.className = 'msg'; msg.textContent = '生成中…';
+  $('#genPlan').disabled = true;
+  try {
+    const body = {
+      industry: $('#f-industry').value, city: $('#f-city').value, price: $('#f-price').value,
+      audience: $('#f-audience').value, pain: $('#f-pain').value,
+    };
+    const r = await fetch(API + '/api/plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const j = await r.json();
+    msg.className = 'msg ok';
+    msg.textContent = j.source === 'model' ? '由 AI 生成' : (j.note ? '已用内置模板：' + j.note : '已用内置模板（配置 API Key 后可由 AI 生成）');
+    renderPlan(j);
+  } catch (e) {
+    msg.className = 'msg err'; msg.textContent = '失败：' + e.message;
+  } finally { $('#genPlan').disabled = false; }
+});
+
+function renderPlan(p) {
+  const esc = (s) => String(s == null ? '' : s);
+  const html = `
+    <div class="card"><h3>目标客户画像</h3>
+      <ul class="plan">${(p.persona || []).map((x, i) => `<li data-d="${i + 1}">${esc(x)}</li>`).join('')}</ul>
+    </div>
+    <div class="card"><h3>客户会搜的关键词</h3>
+      <div class="chips">${(p.keywords || []).map((k) => `<span class="chip">${esc(k)}</span>`).join('')}</div>
+      <p class="muted" style="margin-top:10px">用法：把这些词放进标题/笔记/视频文案，被人搜到的概率最高。</p>
+    </div>
+    <div class="card"><h3>该用哪些渠道</h3>
+      ${(p.channels || []).map((c) => `<div class="chan"><b>${esc(c.name)}</b><p>${esc(c.why)}</p><div class="act">→ ${esc(c.action)}</div></div>`).join('')}
+    </div>
+    <div class="card"><h3>直接能用的触达文案</h3>
+      <div class="script"><b>私信首条</b>${esc(p.scripts?.dm)}</div>
+      <div class="script"><b>朋友圈</b>${esc(p.scripts?.moments)}</div>
+      <div class="script"><b>点评回复模板</b>${esc(p.scripts?.review)}</div>
+      <div class="script"><b>短视频开头 3 秒</b>${esc(p.scripts?.video)}</div>
+    </div>
+    <div class="card"><h3>7 天行动清单</h3>
+      <ul class="plan">${(p.plan7 || []).map((x, i) => `<li data-d="D${i + 1}">${esc(x)}</li>`).join('')}</ul>
+    </div>
+    <div class="card"><h3>怎么衡量有效</h3>
+      <table><thead><tr><th>指标</th><th>目标</th><th>怎么做</th></tr></thead>
+      <tbody>${(p.kpi || []).map((k) => `<tr><td>${esc(k.name)}</td><td>${esc(k.target)}</td><td class="muted">${esc(k.how)}</td></tr>`).join('')}</tbody></table>
+    </div>`;
+  $('#planOut').innerHTML = html;
+}
+
+/* 线索 */
+async function loadLeads() {
+  const list = await (await fetch(API + '/api/leads')).json();
+  const rows = $('#leadRows');
+  if (!list.length) { rows.innerHTML = '<tr><td colspan="5" class="empty">暂无线索</td></tr>'; return; }
+  rows.innerHTML = list.map((l) => `
+    <tr>
+      <td><b>${l.name}</b><div class="muted">${l.contact || ''}</div></td>
+      <td class="muted">${l.channel || '-'}</td>
+      <td><select data-id="${l.id}" class="st-sel" style="width:auto;padding:4px 8px;font-size:12px">
+        ${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${l.status === k ? 'selected' : ''}>${v}</option>`).join('')}
+      </select></td>
+      <td class="muted">${new Date(l.createdAt).toLocaleDateString('zh-CN')}</td>
+      <td>
+        <button class="ghost mini" data-fu="${l.id}">生成跟进话术</button>
+        <button class="ghost mini" data-del="${l.id}">删除</button>
+      </td>
+    </tr>`).join('');
+  rows.querySelectorAll('.st-sel').forEach((s) => s.addEventListener('change', async () => {
+    await fetch(API + '/api/leads/' + s.dataset.id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: s.value }) });
+  }));
+  rows.querySelectorAll('[data-del]').forEach((b) => b.addEventListener('click', async () => {
+    if (!confirm('删除这条线索？')) return;
+    await fetch(API + '/api/leads/' + b.dataset.del, { method: 'DELETE' });
+    loadLeads();
+  }));
+  rows.querySelectorAll('[data-fu]').forEach((b) => b.addEventListener('click', async () => {
+    b.disabled = true; b.textContent = '生成中…';
+    const lead = list.find((x) => x.id === b.dataset.fu);
+    const r = await fetch(API + '/api/followup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(lead) });
+    const j = await r.json();
+    b.disabled = false; b.textContent = '生成跟进话术';
+    await navigator.clipboard.writeText(j.text || '');
+    alert('已复制到剪贴板：\n\n' + (j.text || ''));
+  }));
+}
+
+$('#addLead').addEventListener('click', async () => {
+  const msg = $('#leadMsg');
+  if (!$('#l-name').value.trim()) { msg.className = 'msg err'; msg.textContent = '请填写客户名'; return; }
+  await fetch(API + '/api/leads', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: $('#l-name').value, channel: $('#l-channel').value, contact: $('#l-contact').value, note: $('#l-note').value }),
+  });
+  $('#l-name').value = ''; $('#l-channel').value = ''; $('#l-contact').value = ''; $('#l-note').value = '';
+  msg.className = 'msg ok'; msg.textContent = '已添加';
+  loadLeads();
+});
+
+async function loadBoard() {
+  const list = await (await fetch(API + '/api/leads')).json();
+  const count = (s) => list.filter((x) => x.status === s).length;
+  const total = list.length;
+  const replied = count('replied') + count('visited') + count('won');
+  const won = count('won');
+  const stats = [
+    { v: total, l: '线索总数' },
+    { v: count('contacted') + replied + won, l: '已触达' },
+    { v: replied, l: '已回复' },
+    { v: count('visited'), l: '已到店' },
+    { v: won, l: '已成交' },
+  ];
+  $('#boardStats').innerHTML = stats.map((s) => `<div class="stat"><b>${s.v}</b><span>${s.l}</span></div>`).join('');
+  const rate = (a, b) => (b ? Math.round((a / b) * 100) : 0);
+  $('#boardStats').insertAdjacentHTML('afterend', '');
+  const extra = document.createElement('p');
+  extra.className = 'muted';
+  extra.style.marginTop = '12px';
+  extra.textContent = `触达→回复 ${rate(replied, total)}% · 回复→成交 ${rate(won, replied)}% · 总转化 ${rate(won, total)}%`;
+  const card = $('#boardStats').closest('.card');
+  const old = card.querySelector('.rate-line'); if (old) old.remove();
+  extra.classList.add('rate-line');
+  card.appendChild(extra);
+}
+
+loadLeads();
+</script>
+</body>
+</html>
