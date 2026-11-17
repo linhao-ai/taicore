@@ -1,13 +1,21 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "TAICORE",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "identifier": "com.taicore.desktop",
   "build": {
     "frontendDist": "../../../ui"
   },
   "app": {
-    "windows": [],
+    "windows": [
+      {
+        "title": "钛核 TAICORE",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 960,
+        "minHeight": 640
+      }
+    ],
     "security": {
       "csp": null,
       "capabilities": []
@@ -41,6 +49,8 @@
       },
       "nsis": {
         "installMode": "currentUser",
+        "languages": ["SimpChinese"],
+        "displayLanguageSelector": false,
         "installerHooks": "nsis/installerHooks.nsh",
         "template": "nsis/installer-template.nsi"
       }

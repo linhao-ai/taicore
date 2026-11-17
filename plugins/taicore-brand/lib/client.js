@@ -184,10 +184,13 @@ window.__ModuleLoader__.load({
         const jobs = [];
         let n;
         while ((n = walker.nextNode())) {
-          if (n.nodeValue && n.nodeValue.includes("DeepSeek Harness")) jobs.push(n);
+          if (n.nodeValue && /DeepSeek Harness|DSH Pack|DSH Desktop/i.test(n.nodeValue)) jobs.push(n);
         }
         for (const node of jobs) {
-          node.nodeValue = node.nodeValue.split("DeepSeek Harness").join("钛核 TAICORE");
+          node.nodeValue = node.nodeValue
+            .replace(/DeepSeek Harness/gi, "钛核 TAICORE")
+            .replace(/DSH Pack/gi, "钛核 TAICORE")
+            .replace(/DSH Desktop/gi, "钛核 TAICORE");
         }
         // 2) 欢迎页标题渐变（标题可能带子 span，逐层上色）
         const heads = [...root.querySelectorAll("h1,h2,h3")].filter(
@@ -223,12 +226,27 @@ window.__ModuleLoader__.load({
         [...root.querySelectorAll("div,span,a,button,h1,h2")].forEach((el) => {
           if (el.dataset.tcReplaced === "1") return;
           const txt = (el.textContent || "").trim().toLowerCase().replace(/\s+/g, " ");
-          if (txt !== "deepseek harness") return;
+          if (txt !== "deepseek harness" && txt !== "dsh pack" && txt !== "dsh desktop") return;
           const r = el.getBoundingClientRect();
           if (!r.width || r.width > 320 || r.height > 72) return;
           el.dataset.tcReplaced = "1";
           el.innerHTML = '<span class="taicore-wordmark">钛核<small>TAICORE</small></span>';
         });
+        // 6) 未配置模型：中文引导
+        const credEls = [...root.querySelectorAll("div,p,span,li")].filter((el) => {
+          if (el.dataset.tcCred === "1") return false;
+          const t = el.textContent || "";
+          return t.length < 400 && /MISSING_CREDENTIAL|no API key/i.test(t);
+        });
+        if (credEls.length) {
+          const el = credEls[0];
+          el.dataset.tcCred = "1";
+          const tip = document.createElement("div");
+          tip.className = "taicore-cred-tip";
+          tip.style.cssText = "margin:10px 0;padding:11px 13px;border-radius:10px;border:1px solid rgba(0,224,255,.3);background:rgba(0,224,255,.08);color:#BFEFFF;font-size:12.5px;line-height:1.75";
+          tip.innerHTML = "💡 <b>还没有配置模型</b>：钛核使用你自己的模型账号，不上传任何数据。<br>点右上角「设置 → 模型」，或下方「请选择模型」，填入 DeepSeek / 通义 / 豆包等 API Key 即可开始使用。";
+          el.insertAdjacentElement("afterend", tip);
+        }
       } catch (e) {
         /* DOM 接管失败不影响插件其余部分 */
       }

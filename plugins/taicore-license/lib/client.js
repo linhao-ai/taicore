@@ -94,8 +94,8 @@ window.__ModuleLoader__.load({
     }
 
     const CSS = `
-      #tc-license-btn{position:fixed;right:18px;bottom:18px;z-index:2147483000;display:flex;align-items:center;gap:8px;
-        padding:9px 14px;border-radius:999px;border:1px solid rgba(0,224,255,.35);background:rgba(10,16,28,.92);
+      #tc-license-btn{position:fixed;right:6px;top:50%;transform:translateY(-50%);z-index:2147483000;display:flex;align-items:center;gap:6px;
+        padding:7px 10px;border-radius:999px 0 0 999px;border:1px solid rgba(0,224,255,.35);background:rgba(10,16,28,.92);
         color:#E8EEF9;font:600 12px/1 "Segoe UI","Microsoft YaHei",sans-serif;cursor:pointer;
         box-shadow:0 8px 28px rgba(0,0,0,.45);backdrop-filter:blur(8px)}
       #tc-license-btn i{width:7px;height:7px;border-radius:50%;background:#FF4D5E;box-shadow:0 0 10px #FF4D5E}
