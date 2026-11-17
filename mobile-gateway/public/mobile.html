@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>钛核 TAICORE · 手机版</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="钛核">
+<meta name="theme-color" content="#05070D">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<style>
+  :root{--bg:#05070D;--panel:#0B101C;--line:#1B2540;--cyan:#00E0FF;--violet:#7A5CFF;--text:#E9EFFA;--sub:#9AA9C2;--dim:#5C6B85;--grad:linear-gradient(135deg,#00E0FF,#7A5CFF)}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;min-height:100vh;background:radial-gradient(80% 60% at 50% -10%,rgba(0,224,255,.16),transparent),var(--bg);color:var(--text);
+    font-family:"Inter","HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;padding:32px 18px calc(32px + env(safe-area-inset-bottom))}
+  .wrap{max-width:520px;margin:0 auto}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:26px}
+  .logo{width:38px;height:38px}
+  .brand b{font-size:18px}.brand small{display:block;font-size:9px;letter-spacing:.3em;color:var(--dim)}
+  h1{font-size:24px;margin:0 0 8px;letter-spacing:-.02em}
+  .sub{color:var(--sub);font-size:13.5px;line-height:1.8;margin:0 0 24px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
+  .step{display:flex;gap:12px;margin-bottom:16px}
+  .step:last-child{margin-bottom:0}
+  .no{flex:0 0 24px;width:24px;height:24px;border-radius:8px;background:var(--grad);color:#04121A;font-weight:800;font-size:12px;display:grid;place-items:center}
+  .step b{display:block;font-size:14px;margin-bottom:3px}
+  .step p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.75}
+  .btns{display:grid;gap:10px;margin-top:6px}
+  button,a.btn{display:block;text-align:center;text-decoration:none;border:0;cursor:pointer;padding:15px;border-radius:12px;
+    background:var(--grad);color:#04121A;font-weight:800;font-size:15px;font-family:inherit}
+  a.ghost{background:rgba(255,255,255,.06);color:var(--text);border:1px solid #26344F;font-weight:650;font-size:14px}
+  .muted{color:var(--dim);font-size:12px;line-height:1.8;margin-top:10px}
+  .os{font-size:11.5px;color:#9BE9FF;border:1px solid rgba(0,224,255,.25);background:rgba(0,224,255,.06);padding:3px 9px;border-radius:99px;display:inline-block;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <svg class="logo" viewBox="0 0 96 96"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00E0FF"/><stop offset="1" stop-color="#7A5CFF"/></linearGradient></defs>
+      <path d="M88 48 L68 83 L28 83 L8 48 L28 13 L68 13 Z" fill="none" stroke="url(#g)" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M54.5 24 L39.5 51 H48.5 L43.5 72 L60.5 43.5 H51 Z" fill="#D9FBFF"/></svg>
+    <div class="brand"><b>钛核 · 手机版</b><small>TAICORE</small></div>
+  </header>
+
+  <h1>手机也能用你的工作台</h1>
+  <p class="sub">不用装 App、不用上应用商店。添加到手机桌面，下次点图标直接进——和 App 一样用，数据还在你的电脑上。</p>
+
+  <div class="card">
+    <div class="btns">
+      <a class="btn" id="openBtn" href="#">打开工作台</a>
+      <a class="btn ghost" href="#add">怎么放到桌面</a>
+    </div>
+    <p class="muted" id="statusLine">正在连接电脑…</p>
+  </div>
+
+  <div class="card" id="add">
+    <h3 style="margin:0 0 14px;font-size:15px">添加到手机桌面（30 秒）</h3>
+    <div class="step">
+      <div class="no">1</div>
+      <div><b>用手机浏览器打开本页</b><p>微信里请先点右上角「…」→ 在浏览器打开。</p></div>
+    </div>
+    <div class="step">
+      <div class="no">2</div>
+      <div><b>点浏览器的分享 / 菜单</b><p>iOS Safari：底部「分享」→ 添加到主屏幕；安卓 Chrome / Edge：右上角「⋮」→ 添加到主屏幕。</p></div>
+    </div>
+    <div class="step">
+      <div class="no">3</div>
+      <div><b>桌面会出现「钛核」图标</b><p>下次点图标直接打开，不用再扫码。</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="os">注意</span>
+    <p class="muted" style="margin:0">
+      · 手机和电脑必须在同一个 WiFi<br>
+      · 电脑关机 / 关闭「手机访问」后，手机就打不开了<br>
+      · 数据始终在电脑上，手机只是操作界面
+    </p>
+  </div>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+async function init() {
+  try {
+    const s = await (await fetch('/api/status')).json();
+    if (s.url) {
+      $('#openBtn').href = s.url;
+      $('#statusLine').textContent = '已连接电脑 ' + (s.ip || '');
+    } else {
+      $('#statusLine').textContent = '电脑端还没启动，请在电脑上打开「手机访问」';
+      $('#openBtn').style.opacity = '.5';
+    }
+  } catch {
+    $('#statusLine').textContent = '连接失败，请确认电脑端「手机访问」已启动';
+  }
+}
+init();
+setInterval(init, 3000);
+</script>
+</body>
+</html>

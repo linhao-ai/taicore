@@ -111,9 +111,22 @@ function json(res, code, obj) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://127.0.0.1:${PORT_UI}`);
+  if (url.pathname === '/m') {
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+    return fs.createReadStream(path.join(HERE, 'public', 'mobile.html')).pipe(res);
+  }
   if (url.pathname === '/') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
     return fs.createReadStream(path.join(HERE, 'public', 'index.html')).pipe(res);
+  }
+  if (/^\/icon-\d+\.png$/.test(url.pathname)) {
+    const ic = path.join(HERE, 'public', url.pathname.slice(1));
+    if (fs.existsSync(ic)) {
+      res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'max-age=3600' });
+      return fs.createReadStream(ic).pipe(res);
+    }
+    res.writeHead(404).end();
+    return;
   }
   if (url.pathname === '/qrcode.js') {
     res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'no-store' });
@@ -121,7 +134,7 @@ const server = http.createServer(async (req, res) => {
   }
   if (url.pathname === '/api/status') {
     return json(res, 200, {
-      ip: state.ip, url: state.url, status: state.status, message: state.message,
+      ip: state.ip, url: state.url, mUrl: state.ip ? `http://${state.ip}:${PORT_UI}/m` : null, status: state.status, message: state.message,
       port: PORT_WEB, startedAt: state.startedAt,
     });
   }
@@ -137,7 +150,7 @@ const server = http.createServer(async (req, res) => {
   res.writeHead(404).end('not found');
 });
 
-server.listen(PORT_UI, '127.0.0.1', () => {
+server.listen(PORT_UI, '0.0.0.0', () => {
   console.log(`手机访问网关: http://127.0.0.1:${PORT_UI}`);
   start();
 });
