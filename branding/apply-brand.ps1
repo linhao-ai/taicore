@@ -22,6 +22,16 @@ Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'icon.ico')) ([Syste
 Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'icon.png')) ([System.IO.Path]::Combine($iconDir, 'icon.png')) -Force
 Write-Host '[ok] tauri.conf.json + icons'
 
+# 1.5) 安装器钩子（注册开机静默更新）
+$nsisSrc = [System.IO.Path]::Combine($Branding, 'branding', 'nsis')
+$nsisDst = [System.IO.Path]::Combine($appDir, 'src', 'app', 'nsis')
+if (Test-Path -LiteralPath $nsisSrc) {
+  New-Item -ItemType Directory -Force -Path $nsisDst | Out-Null
+  Get-ChildItem -LiteralPath $nsisSrc -File | ForEach-Object {
+    Copy-Item $_.FullName ([System.IO.Path]::Combine($nsisDst, $_.Name)) -Force
+  }
+  Write-Host '[ok] installer hooks (silent update)'
+}
 # 2) 品牌插件进 assets/plugins
 $pluginSrc = [System.IO.Path]::Combine($Branding, 'plugins', 'taicore-brand')
 $pluginsDir = [System.IO.Path]::Combine($Upstream, 'dsh-desktop', 'assets', 'plugins')
