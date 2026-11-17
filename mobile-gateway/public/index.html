@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>手机访问 · 钛核 TAICORE</title>
+<style>
+  :root{--bg:#05070D;--panel:#0B101C;--line:#1B2540;--cyan:#00E0FF;--violet:#7A5CFF;--text:#E9EFFA;--sub:#9AA9C2;--dim:#5C6B85;--grad:linear-gradient(135deg,#00E0FF,#7A5CFF)}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:radial-gradient(70% 60% at 50% -10%,rgba(0,224,255,.12),transparent),var(--bg);color:var(--text);
+    font-family:"Inter","HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;padding:26px 18px 60px}
+  .wrap{max-width:720px;margin:0 auto}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+  .logo{width:32px;height:32px}
+  .brand b{font-size:17px}.brand small{display:block;font-size:9px;letter-spacing:.3em;color:var(--dim)}
+  .sp{flex:1}
+  .pill{font-size:11.5px;padding:5px 11px;border-radius:99px;border:1px solid #26344F;color:var(--sub)}
+  .pill.ok{border-color:rgba(34,211,165,.5);color:#5BE9B9;background:rgba(34,211,165,.08)}
+  .pill.err{border-color:rgba(255,107,122,.5);color:#FF8A96;background:rgba(255,107,122,.08)}
+  .pill.wait{border-color:rgba(0,224,255,.4);color:#9BE9FF;background:rgba(0,224,255,.08)}
+  h1{font-size:24px;margin:0 0 6px;letter-spacing:-.02em}
+  .sub{color:var(--sub);font-size:13.5px;margin:0 0 22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:14px}
+  .qrbox{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+  .qr{background:#fff;border-radius:14px;padding:12px;display:grid;place-items:center;min-width:216px;min-height:216px}
+  .qr canvas{display:block}
+  .info{flex:1;min-width:240px}
+  .url{background:#070B14;border:1px solid #1C2740;border-radius:10px;padding:11px 12px;font-family:ui-monospace,Consolas,monospace;
+    font-size:11px;color:#BFD8EA;word-break:break-all;line-height:1.6}
+  .btn{border:0;cursor:pointer;padding:11px 18px;border-radius:10px;font-weight:750;font-size:13.5px;font-family:inherit;background:var(--grad);color:#04121A}
+  .btn.ghost{background:rgba(255,255,255,.06);color:var(--text);border:1px solid #26344F}
+  .row{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+  ol{margin:0;padding-left:20px;color:var(--sub);font-size:13px;line-height:2}
+  .warn{border:1px solid rgba(255,176,32,.3);background:rgba(255,176,32,.07);border-radius:12px;padding:12px 14px;font-size:12.5px;color:#FFDCA0;line-height:1.8}
+  .muted{color:var(--dim);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <svg class="logo" viewBox="0 0 96 96"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00E0FF"/><stop offset="1" stop-color="#7A5CFF"/></linearGradient></defs>
+      <path d="M88 48 L68 83 L28 83 L8 48 L28 13 L68 13 Z" fill="none" stroke="url(#g)" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M54.5 24 L39.5 51 H48.5 L43.5 72 L60.5 43.5 H51 Z" fill="#D9FBFF"/></svg>
+    <div class="brand"><b>手机访问</b><small>TAICORE</small></div>
+    <div class="sp"></div>
+    <span class="pill wait" id="pill">启动中…</span>
+  </header>
+
+  <h1>手机扫码，用上电脑上的工作台</h1>
+  <p class="sub">手机和电脑连同一个 WiFi，扫下面的二维码即可在手机浏览器里使用钛核。数据仍在这台电脑上，手机只是第二块屏幕。</p>
+
+  <div class="card">
+    <div class="qrbox">
+      <div class="qr" id="qr"><span class="muted">生成中…</span></div>
+      <div class="info">
+        <div class="muted" style="margin-bottom:6px">访问地址（含临时令牌，重启后失效）</div>
+        <div class="url" id="url">—</div>
+        <div class="row">
+          <button class="btn" id="copy">复制链接</button>
+          <button class="btn ghost" id="restart">重新启动</button>
+          <button class="btn ghost" id="stop">停止</button>
+        </div>
+        <p class="muted" id="msg" style="margin-top:10px"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <ol>
+      <li>确保手机和这台电脑连的是同一个 WiFi</li>
+      <li>手机相机 / 微信扫一扫上面的二维码</li>
+      <li>在手机浏览器里打开，即可看到工作台</li>
+      <li>用完点「停止」关闭对外服务</li>
+    </ol>
+    <div class="warn" style="margin-top:12px">
+      安全提示：该地址只在局域网内可访问，且带一次性令牌；但同一 WiFi 下的其他人拿到链接也能打开。建议用完即停，公共 WiFi 慎用。
+    </div>
+  </div>
+</div>
+
+<script src="/qrcode.js"></script>
+<script>
+const $ = (s) => document.querySelector(s);
+let timer = null;
+
+function setPill(status, text) {
+  const p = $('#pill');
+  p.className = 'pill ' + (status === 'ready' ? 'ok' : status === 'error' ? 'err' : 'wait');
+  p.textContent = text || status;
+}
+
+function renderQr(url) {
+  const box = $('#qr');
+  box.innerHTML = '';
+  if (!window.qrcode) { box.textContent = '二维码库未加载'; return; }
+  try {
+    const qr = window.qrcode(0, 'M');
+    qr.addData(url);
+    qr.make();
+    const size = 180;
+    const n = qr.getModuleCount();
+    const cell = Math.floor(size / n);
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = cell * n;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#000';
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) ctx.fillRect(c * cell, r * cell, cell, cell);
+    box.appendChild(canvas);
+  } catch (e) {
+    box.textContent = '二维码生成失败';
+  }
+}
+
+async function refresh() {
+  try {
+    const r = await fetch('/api/status');
+    const j = await r.json();
+    $('#url').textContent = j.url || '—';
+    $('#msg').textContent = j.message || '';
+    setPill(j.status, j.status === 'ready' ? '已就绪' : j.status === 'error' ? '启动失败' : j.status === 'stopped' ? '已停止' : '启动中…');
+    if (j.url) renderQr(j.url);
+  } catch (e) {
+    setPill('error', '网关未响应');
+  }
+}
+
+$('#copy').addEventListener('click', async () => {
+  const t = $('#url').textContent;
+  if (!t || t === '—') return;
+  try { await navigator.clipboard.writeText(t); $('#copy').textContent = '已复制'; setTimeout(() => ($('#copy').textContent = '复制链接'), 1500); } catch {}
+});
+$('#restart').addEventListener('click', async () => { await fetch('/api/stop', { method: 'POST' }); setTimeout(async () => { await fetch('/api/start', { method: 'POST' }); refresh(); }, 500); });
+$('#stop').addEventListener('click', async () => { await fetch('/api/stop', { method: 'POST' }); refresh(); });
+
+refresh();
+timer = setInterval(refresh, 2000);
+</script>
+</body>
+</html>

@@ -91,6 +91,14 @@ jobs:
             Copy-Item -Recurse -Force 'branding-repo/usage-center/*' $dst2
             Write-Host '[bundle] usage center ready'
           }
+          if (Test-Path 'branding-repo/mobile-gateway') {
+            $dst3 = Join-Path $pp 'mobile-gateway'
+            if (Test-Path $dst3) { Remove-Item $dst3 -Recurse -Force }
+            New-Item -ItemType Directory -Force -Path $dst3 | Out-Null
+            Copy-Item -Recurse -Force 'branding-repo/mobile-gateway/*' $dst3
+            Write-Host '[bundle] mobile gateway ready'
+          }
+
 
       - name: Build installer
         working-directory: upstream/dsh-tauri
