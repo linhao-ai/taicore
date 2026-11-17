@@ -105,7 +105,7 @@ jobs:
             Copy-Item -Recurse -Force 'branding-repo/get-clients/*' $dst4
             Write-Host '[bundle] get-clients ready'
           }
-          foreach ($tool in @('img-studio','cs-agent','canvas-studio')) {
+          foreach ($tool in @('img-studio','cs-agent','canvas-studio','team-room')) {
             if (Test-Path "branding-repo/$tool") {
               $dst = Join-Path $pp $tool
               if (Test-Path $dst) { Remove-Item $dst -Recurse -Force }
