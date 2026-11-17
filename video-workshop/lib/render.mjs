@@ -63,17 +63,59 @@ function wrapText(text, maxChars) {
 }
 
 /**
- * @param {object} job { dir, slides:[{file,text}], opts:{aspect,rate,bgmPath} }
+ * 生成纯文字卡片（片头/片尾）
+ */
+async function makeCard(dir, name, title, subtitle, aspect, color) {
+  const size = SIZE[aspect] || SIZE.vertical;
+  const bg = color || '0x0B1A2A';
+  const fsMain = Math.round(size.h * 0.052);
+  const fsSub = Math.round(size.h * 0.032);
+  const lines = wrapText(title, Math.max(6, Math.floor((size.w * 0.8) / fsMain)));
+  const tf = path.join(dir, name + '_t.txt');
+  const sf = path.join(dir, name + '_s.txt');
+  fs.writeFileSync(tf, lines.join('\n'), 'utf8');
+  fs.writeFileSync(sf, subtitle || '', 'utf8');
+  const filters = [
+    `drawtext=fontfile='${FONT}':textfile='${esc(tf)}':fontcolor=white:fontsize=${fsMain}:line_spacing=14:borderw=3:bordercolor=black@0.55:x=(w-text_w)/2:y=(h-text_h)/2-${Math.round(fsMain * 0.4)}`,
+  ];
+  if ((subtitle || '').trim()) {
+    filters.push(`drawtext=fontfile='${FONT}':textfile='${esc(sf)}':fontcolor=0x9BE9FF:fontsize=${fsSub}:x=(w-text_w)/2:y=(h-text_h)/2+${Math.round(fsMain * 0.9)}`);
+  }
+  const file = path.join(dir, name + '.png');
+  await run(FFMPEG, ['-hide_banner', '-y', '-f', 'lavfi', '-i', `color=c=${bg}:s=${size.w}x${size.h}:d=1`, '-vf', filters.join(','), '-frames:v', '1', file]);
+  return file;
+}
+
+/**
+ * @param {object} job { dir, slides:[{file,text}], opts:{aspect,rate,bgmPath,bgmName,intro,outro} }
  * @param {(p:number,msg:string)=>void} onProgress
  */
 export async function renderVideo(job, onProgress = () => {}) {
-  const { dir, slides, opts = {} } = job;
+  const { dir, opts = {} } = job;
+  let slides = job.slides.slice();
   const size = SIZE[opts.aspect] || SIZE.vertical;
   const rate = Number(opts.rate || 0);
   const audioDir = path.join(dir, 'audio');
   const subDir = path.join(dir, 'subs');
   fs.mkdirSync(audioDir, { recursive: true });
   fs.mkdirSync(subDir, { recursive: true });
+
+  // 片头 / 片尾卡片
+  if (opts.intro && String(opts.intro.title || '').trim()) {
+    const f = await makeCard(dir, 'card_intro', String(opts.intro.title).trim(), String(opts.intro.subtitle || '').trim(), opts.aspect, opts.intro.color);
+    slides.unshift({ file: f, text: [opts.intro.title, opts.intro.subtitle].filter(Boolean).join(' ') });
+  }
+  if (opts.outro && String(opts.outro.title || '').trim()) {
+    const f = await makeCard(dir, 'card_outro', String(opts.outro.title).trim(), String(opts.outro.subtitle || '').trim(), opts.aspect, opts.outro.color);
+    slides.push({ file: f, text: [opts.outro.title, opts.outro.subtitle].filter(Boolean).join(' ') });
+  }
+
+  // BGM：优先自定义路径，其次内置曲库
+  let bgmPath = opts.bgmPath || null;
+  if (!bgmPath && opts.bgmName) {
+    const p = path.join(ROOT, 'assets', 'bgm', String(opts.bgmName) + '.mp3');
+    if (fs.existsSync(p)) bgmPath = p;
+  }
 
   // 1) 配音
   const narrations = [];
@@ -129,7 +171,7 @@ export async function renderVideo(job, onProgress = () => {}) {
     else audIdx.push(-1);
   }
   let bgmIdx = -1;
-  if (opts.bgmPath && fs.existsSync(opts.bgmPath)) { inputs.push('-stream_loop', '-1', '-i', opts.bgmPath); bgmIdx = idx++; }
+  if (bgmPath && fs.existsSync(bgmPath)) { inputs.push('-stream_loop', '-1', '-i', bgmPath); bgmIdx = idx++; }
 
   const marginBottom = Math.round(size.h * 0.10);
   for (let i = 0; i < slides.length; i++) {
@@ -221,4 +263,27 @@ export async function renderVideo(job, onProgress = () => {}) {
 
   onProgress(100, '完成');
   return { output: outFile, srt: path.join(dir, 'output.srt'), duration: total, size };
+}
+
+/**
+ * 批量生成：同一套画面，多个不同的开场钩子
+ * @param {object} job
+ * @param {string[]} hooks
+ */
+export async function renderVideoBatch(job, hooks, onProgress = () => {}) {
+  const list = (hooks || []).map((h) => String(h || '').trim()).filter(Boolean);
+  const results = [];
+  for (let i = 0; i < list.length; i++) {
+    const hook = list[i];
+    const dir = path.join(job.dir, 'v' + (i + 1));
+    fs.mkdirSync(dir, { recursive: true });
+    const slides = job.slides.map((s, idx) => (idx === 0 ? { ...s, text: hook } : s));
+    onProgress((i / list.length) * 100, `第 ${i + 1}/${list.length} 条生成中`);
+    const r = await renderVideo({ ...job, dir, slides }, (p, m) => {
+      onProgress(((i + p / 100) / list.length) * 100, `第 ${i + 1}/${list.length} 条：${m}`);
+    });
+    results.push({ ...r, hook, index: i + 1 });
+  }
+  onProgress(100, '批量完成');
+  return results;
 }

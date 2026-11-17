@@ -89,16 +89,36 @@
       <div class="field"><label>语速：<span id="rateVal">正常</span></label>
         <input id="rate" type="range" min="-4" max="4" step="1" value="0" style="width:180px">
       </div>
-      <div class="field"><label>背景音乐（可选）</label>
-        <input id="bgm" type="file" accept="audio/*">
+      <div class="field"><label>背景音乐</label>
+        <select id="bgmName">
+          <option value="">无</option>
+          <option value="calm">舒缓 · 叙事</option>
+          <option value="warm">温暖 · 生活</option>
+          <option value="upbeat">轻快 · 促销</option>
+        </select>
       </div>
     </div>
-    <p class="tip">配音用系统中文语音（离线），字幕会自动打在画面上，同时导出 .srt 可二次编辑。</p>
+    <div class="row" style="margin-top:12px">
+      <div class="field"><label>片头标题（可选）</label><input id="introTitle" type="text" placeholder="例：山城老灶 · 牛肉面"></div>
+      <div class="field"><label>片头副标题</label><input id="introSub" type="text" placeholder="例：二十年只做一碗汤"></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <div class="field"><label>片尾标题（可选）</label><input id="outroTitle" type="text" placeholder="例：到店报暗号「钛核」"></div>
+      <div class="field"><label>片尾副标题</label><input id="outroSub" type="text" placeholder="例：送招牌小菜一份"></div>
+    </div>
+    <p class="tip">配音用系统中文语音（离线），字幕自动烧录并导出 .srt；背景音乐为内置合成音轨，无版权风险。也可上传自己的 BGM（见下方）。</p>
   </div>
 
   <div class="card">
     <h2>3 · 生成</h2>
-    <button class="btn" id="go">生成视频</button>
+    <label style="display:block;font-size:12px;color:var(--sub);margin-bottom:6px">批量开场钩子（可选，每行一条；填 ≥2 行则批量生成多条，首段文案会被替换）</label>
+    <textarea id="hooks" placeholder="例：&#10;这家店我吃了十年&#10;昆明人从小吃到大的味道&#10;凌晨四点就有人在排队"></textarea>
+    <div class="row" style="margin-top:12px">
+      <div class="field"><label>自定义 BGM（可选，覆盖内置）</label><input id="bgm" type="file" accept="audio/*"></div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn" id="go">生成视频</button>
+    </div>
     <div class="bar"><i id="bar"></i></div>
     <div class="msg" id="msg"></div>
     <div id="result"></div>
@@ -187,9 +207,18 @@ $('#go').addEventListener('click', async () => {
     });
   }
 
+  const hooks = ($('#hooks').value || '').split('\n').map((s) => s.trim()).filter(Boolean);
   const payload = {
     slides: slides.map((s) => ({ image: s.dataUrl, text: (s.text || '').trim() })),
-    opts: { aspect: $('#aspect').value, rate: Number($('#rate').value), bgm },
+    hooks,
+    opts: {
+      aspect: $('#aspect').value,
+      rate: Number($('#rate').value),
+      bgm,
+      bgmName: $('#bgmName').value,
+      intro: { title: ($('#introTitle').value || '').trim(), subtitle: ($('#introSub').value || '').trim() },
+      outro: { title: ($('#outroTitle').value || '').trim(), subtitle: ($('#outroSub').value || '').trim() },
+    },
   };
 
   try {
@@ -212,12 +241,15 @@ async function poll(id) {
     msg.className = 'msg'; msg.textContent = j.msg || '处理中…';
     if (j.status === 'done') {
       msg.className = 'msg ok'; msg.textContent = '生成完成';
-      $('#result').innerHTML = `
-        <video controls src="${j.video}"></video>
-        <div class="dl">
-          <a href="${j.video}" download>下载视频 mp4</a>
-          <a class="ghost" href="${j.srt}" download>下载字幕 srt</a>
-        </div>`;
+      const vids = (j.videos && j.videos.length) ? j.videos : (j.video ? [{ url: j.video, name: 'video.mp4', hook: '' }] : []);
+      $('#result').innerHTML = vids.map((v, i) => `
+        <div style="margin-top:14px">
+          ${vids.length > 1 ? '<div class="muted" style="margin-bottom:6px">第 ' + (i + 1) + ' 条' + (v.hook ? '：' + v.hook : '') + '</div>' : ''}
+          <video controls src="${v.url}"></video>
+          <div class="dl">
+            <a href="${v.url}" download="${v.name || 'video.mp4'}">下载 mp4</a>
+          </div>
+        </div>`).join('');
       $('#go').disabled = false;
       loadHist();
       return;

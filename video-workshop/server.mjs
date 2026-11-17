@@ -4,7 +4,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { renderVideo } from './lib/render.mjs';
+import { renderVideo, renderVideoBatch } from './lib/render.mjs';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
 const PORT = Number(process.env.PORT || 8790);
@@ -79,29 +79,54 @@ const server = http.createServer(async (req, res) => {
         bgmPath = path.join(dir, 'bgm.mp3');
         fs.writeFileSync(bgmPath, Buffer.from(String(body.opts.bgm).split(',')[1] || '', 'base64'));
       }
-      const rec = { status: 'running', progress: 0, msg: '准备中', dir, startedAt: Date.now() };
+      const rec = { status: 'running', progress: 0, msg: '准备中', dir, startedAt: Date.now(), videos: [] };
       state.set(id, rec);
 
-      renderVideo(
-        { dir, slides: prepared, opts: { ...(body.opts || {}), bgmPath } },
-        (progress, msg) => { rec.progress = progress; rec.msg = msg; }
-      ).then((r) => {
-        rec.status = 'done';
-        rec.progress = 100;
-        rec.msg = '完成';
-        rec.output = r.output;
-        rec.srt = r.srt;
-        rec.duration = r.duration;
-        const finalMp4 = path.join(OUT, `钛核视频_${id}.mp4`);
-        fs.copyFileSync(r.output, finalMp4);
-        fs.copyFileSync(r.srt, path.join(OUT, `钛核视频_${id}.srt`));
-        rec.publicMp4 = finalMp4;
-      }).catch((e) => {
-        rec.status = 'error';
-        rec.msg = '合成失败';
-        rec.error = String(e.message || e).slice(0, 500);
-        console.error('[render error]', e);
-      });
+      const opts = { ...(body.opts || {}), bgmPath };
+      const hooks = Array.isArray(body.hooks) ? body.hooks.map((h) => String(h || '').trim()).filter(Boolean) : [];
+
+      if (hooks.length > 1) {
+        // 批量：同一套画面 + 多个开场钩子
+        renderVideoBatch({ dir, slides: prepared, opts }, hooks, (progress, msg) => { rec.progress = progress; rec.msg = msg; })
+          .then((rs) => {
+            rec.status = 'done';
+            rec.progress = 100;
+            rec.msg = `完成 ${rs.length} 条`;
+            rec.videos = rs.map((r) => {
+              const name = `钛核视频_${id}_${r.index}.mp4`;
+              fs.copyFileSync(r.output, path.join(OUT, name));
+              fs.copyFileSync(r.srt, path.join(OUT, name.replace(/\.mp4$/, '.srt')));
+              return { name, url: `/output/${encodeURIComponent(name)}`, hook: r.hook, duration: r.duration };
+            });
+          })
+          .catch((e) => {
+            rec.status = 'error'; rec.msg = '合成失败';
+            rec.error = String(e.message || e).slice(0, 500);
+            console.error('[batch error]', e);
+          });
+      } else {
+        renderVideo({ dir, slides: prepared, opts }, (progress, msg) => { rec.progress = progress; rec.msg = msg; })
+          .then((r) => {
+            rec.status = 'done';
+            rec.progress = 100;
+            rec.msg = '完成';
+            rec.output = r.output;
+            rec.srt = r.srt;
+            rec.duration = r.duration;
+            const finalMp4 = path.join(OUT, `钛核视频_${id}.mp4`);
+            fs.copyFileSync(r.output, finalMp4);
+            fs.copyFileSync(r.srt, path.join(OUT, `钛核视频_${id}.srt`));
+            rec.publicMp4 = finalMp4;
+            rec.videos = [{ name: path.basename(finalMp4), url: `/files/${id}/output.mp4`, hook: '', duration: r.duration }];
+          })
+          .catch((e) => {
+            rec.status = 'error';
+            rec.msg = '合成失败';
+            rec.error = String(e.message || e).slice(0, 500);
+            console.error('[render error]', e);
+          });
+      }
+
 
       return sendJson(res, 200, { id });
     } catch (e) {
@@ -115,8 +140,8 @@ const server = http.createServer(async (req, res) => {
     if (!rec) return sendJson(res, 404, { error: 'not found' });
     return sendJson(res, 200, {
       status: rec.status, progress: rec.progress, msg: rec.msg, error: rec.error || null,
-      video: rec.status === 'done' ? `/files/${mJob[1]}/output.mp4?v=${rec.startedAt}` : null,
-      srt: rec.status === 'done' ? `/files/${mJob[1]}/output.srt?v=${rec.startedAt}` : null,
+      video: rec.status === 'done' && (rec.videos || []).length === 1 ? rec.videos[0].url + '?v=' + rec.startedAt : null,
+      videos: rec.status === 'done' ? (rec.videos || []).map((v) => ({ ...v, url: v.url + '?v=' + rec.startedAt })) : [],
       duration: rec.duration || null,
     });
   }
