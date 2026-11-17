@@ -139,7 +139,7 @@ window.__ModuleLoader__.load({
         <div class="tc-card">
           <h3>钛核 TAICORE 授权</h3>
           <p>把购买后收到的授权码粘贴到下面，点击「激活」。授权码在本机离线校验，不会上传。</p>
-          <textarea id="tc-license-input" placeholder="tc.eyJhbGciOi..."></textarea>
+          <textarea id="tc-license-input" placeholder="TC1.eyJwIjoyLCJlIjoxNzg5...  （粘贴时注意不要带空格）"></textarea>
           <div class="tc-state" id="tc-license-state"></div>
           <div class="tc-row">
             <button class="tc-btn" id="tc-license-close">关闭</button>

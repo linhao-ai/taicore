@@ -275,6 +275,13 @@ window.__ModuleLoader__.load({
       }
     }
 
+    // 锁定浏览器/窗口标题（防被内核动态改回 DeepSeek Harness）
+    const TC_TITLE = "钛核 TAICORE";
+    function lockTitle() {
+      try { if (document.title !== TC_TITLE) document.title = TC_TITLE; } catch (e) {}
+    }
+    lockTitle();
+    setInterval(lockTitle, 1500);
     function apply(ctx) {
       injectTokens();
       observeDom();
