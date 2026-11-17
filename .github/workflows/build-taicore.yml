@@ -115,8 +115,13 @@ jobs:
             }
           }
 
-
-
+          if (Test-Path 'branding-repo/ext') {
+            $dstE = Join-Path $pp 'ext'
+            if (Test-Path $dstE) { Remove-Item $dstE -Recurse -Force }
+            New-Item -ItemType Directory -Force -Path $dstE | Out-Null
+            Copy-Item -Recurse -Force 'branding-repo/ext/*' $dstE
+            Write-Host '[bundle] ext updater ready'
+          }
 
       - name: Build installer
         working-directory: upstream/dsh-tauri
