@@ -1,6 +1,6 @@
-# taicore-brand · 钛核品牌包（PoC）
+# taicore-brand · 为道品牌包（PoC）
 
-把 DSH Web 客户端改成「钛核 TAICORE」：侧栏标志与名称、会话首屏品牌位、主题 token。
+把 DSH Web 客户端改成「为道 WeDAO」：侧栏标志与名称、会话首屏品牌位、主题 token。
 不改内核、不改 `node_modules` 上游包，全部通过 Cordis 插件与 slot 占位实现。
 
 ## 文件
@@ -31,7 +31,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall.ps1 -Restart
 ## 设计要点
 
 - **优先级抢占**：三个 slot 均以 `priority: -1` 注册。slot 规则是"最低者渲染"，
-  因此即使别的品牌包也注册同一位（默认 0）也不会报冲突，钛核会稳定盖住它。
+  因此即使别的品牌包也注册同一位（默认 0）也不会报冲突，为道会稳定盖住它。
 - **样式兜底**：即使 `ctx.theme` 服务不可用，注入的 `#taicore-tokens` 样式表也能生效
   （实测 `--dsw-alias-state-business-primary` 已变成 `#00E0FF`）。
 - **零依赖**：只 require `react` / `react/jsx-runtime`，不引入其它内核包，

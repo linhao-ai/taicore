@@ -1,4 +1,4 @@
-// 钛核 TAICORE 客户端授权（浏览器半边）
+// 为道 WeDAO 客户端授权（浏览器半边）
 // 功能：读取本机保存的授权码 → WebCrypto 验签（RS256）→ 显示状态；提供粘贴激活的浮层。
 window.__ModuleLoader__.load({
   id: "taicore-license",
@@ -137,7 +137,7 @@ window.__ModuleLoader__.load({
       mask.id = "tc-license-mask";
       mask.innerHTML = `
         <div class="tc-card">
-          <h3>钛核 TAICORE 授权</h3>
+          <h3>为道 WeDAO 授权</h3>
           <p>把购买后收到的授权码粘贴到下面，点击「激活」。授权码在本机离线校验，不会上传。</p>
           <textarea id="tc-license-input" placeholder="TC1.eyJwIjoyLCJlIjoxNzg5...  （粘贴时注意不要带空格）"></textarea>
           <div class="tc-state" id="tc-license-state"></div>

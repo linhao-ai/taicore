@@ -1,15 +1,15 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "TAICORE",
-  "version": "1.1.2",
-  "identifier": "com.taicore.desktop",
+  "productName": "WeDAO",
+  "version": "1.2.0",
+  "identifier": "com.wedao.desktop",
   "build": {
     "frontendDist": "../../../ui"
   },
   "app": {
     "windows": [
       {
-        "title": "钛核 TAICORE",
+        "title": "为道 WeDAO",
         "width": 1280,
         "height": 820,
         "minWidth": 960,
@@ -31,8 +31,13 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
-    "icon": ["icons/icon.ico", "icons/icon.png"],
+    "targets": [
+      "nsis"
+    ],
+    "icon": [
+      "icons/icon.ico",
+      "icons/icon.png"
+    ],
     "resources": {
       "../../../sidecar/": "sidecar/",
       "../../../ui/": "ui/",
@@ -49,7 +54,9 @@
       },
       "nsis": {
         "installMode": "currentUser",
-        "languages": ["SimpChinese"],
+        "languages": [
+          "SimpChinese"
+        ],
         "displayLanguageSelector": false,
         "installerHooks": "nsis/installerHooks.nsh",
         "template": "nsis/installer-template.nsi"

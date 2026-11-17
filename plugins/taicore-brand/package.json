@@ -1,7 +1,7 @@
 {
   "name": "taicore-brand",
   "version": "0.1.0",
-  "description": "钛核 TAICORE 品牌占位：侧栏标志/名称、会话首屏品牌位、主题 token 覆盖（PoC）",
+  "description": "为道 WeDAO 品牌占位：侧栏标志/名称、会话首屏品牌位、主题 token 覆盖（PoC）",
   "type": "module",
   "main": "./lib/index.mjs",
   "files": [

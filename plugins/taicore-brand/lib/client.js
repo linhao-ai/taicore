@@ -1,4 +1,4 @@
-// 钛核 TAICORE —— 品牌占位插件（客户端半边）
+// 为道 WeDAO —— 品牌占位插件（客户端半边）
 // 作用：① 侧栏标志/名称 ② 会话首屏品牌位 ③ 主题 token 注入（含暗色/浅色）
 // 约束：只依赖 react / react/jsx-runtime（其它 require 会让整棵插件树加载失败）
 window.__ModuleLoader__.load({
@@ -84,7 +84,7 @@ window.__ModuleLoader__.load({
             lineHeight: 1.1,
           },
         },
-        "钛核",
+        "为道",
         h(
           "span",
           {
@@ -95,7 +95,7 @@ window.__ModuleLoader__.load({
               color: SUB,
             },
           },
-          "TAICORE"
+          "WeDAO"
         )
       );
     }
@@ -119,7 +119,7 @@ window.__ModuleLoader__.load({
               color: "transparent",
             },
           },
-          "钛核"
+          "为道"
         )
       );
     }
@@ -179,7 +179,7 @@ window.__ModuleLoader__.load({
     function rebrandNode(root) {
       try {
         if (!root || root.nodeType !== 1) return;
-        // 1) 文案：DeepSeek Harness → 钛核 TAICORE
+        // 1) 文案：DeepSeek Harness → 为道 WeDAO
         const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
         const jobs = [];
         let n;
@@ -188,9 +188,9 @@ window.__ModuleLoader__.load({
         }
         for (const node of jobs) {
           node.nodeValue = node.nodeValue
-            .replace(/DeepSeek Harness/gi, "钛核 TAICORE")
-            .replace(/DSH Pack/gi, "钛核 TAICORE")
-            .replace(/DSH Desktop/gi, "钛核 TAICORE");
+            .replace(/DeepSeek Harness/gi, "为道 WeDAO")
+            .replace(/DSH Pack/gi, "为道 WeDAO")
+            .replace(/DSH Desktop/gi, "为道 WeDAO");
         }
         // 2) 欢迎页标题渐变（标题可能带子 span，逐层上色）
         const heads = [...root.querySelectorAll("h1,h2,h3")].filter(
@@ -212,14 +212,14 @@ window.__ModuleLoader__.load({
           const t = (b.textContent || "").trim();
           if (t === "开始设置" || t === "开始使用") b.classList.add("taicore-cta");
         });
-        // 4) 官方字标（SVG）替换为钛核字标
+        // 4) 官方字标（SVG）替换为为道字标
         root.querySelectorAll('svg[aria-label*="eepSeek" i], svg[aria-label*="HARNESS" i]').forEach((svg) => {
           const parent = svg.parentElement;
           if (!parent || parent.querySelector(".taicore-wordmark")) return;
           svg.style.display = "none";
           const wm = document.createElement("span");
           wm.className = "taicore-wordmark";
-          wm.innerHTML = "钛核<small>TAICORE</small>";
+          wm.innerHTML = "为道<small>WeDAO</small>";
           parent.insertBefore(wm, svg);
         });
         // 5) 文本型官方字标（如浮窗头部的 deepseek HARNESS）整体替换
@@ -230,7 +230,7 @@ window.__ModuleLoader__.load({
           const r = el.getBoundingClientRect();
           if (!r.width || r.width > 320 || r.height > 72) return;
           el.dataset.tcReplaced = "1";
-          el.innerHTML = '<span class="taicore-wordmark">钛核<small>TAICORE</small></span>';
+          el.innerHTML = '<span class="taicore-wordmark">为道<small>WeDAO</small></span>';
         });
         // 6) 未配置模型：中文引导
         const credEls = [...root.querySelectorAll("div,p,span,li")].filter((el) => {
@@ -244,7 +244,7 @@ window.__ModuleLoader__.load({
           const tip = document.createElement("div");
           tip.className = "taicore-cred-tip";
           tip.style.cssText = "margin:10px 0;padding:11px 13px;border-radius:10px;border:1px solid rgba(0,224,255,.3);background:rgba(0,224,255,.08);color:#BFEFFF;font-size:12.5px;line-height:1.75";
-          tip.innerHTML = "💡 <b>还没有配置模型</b>：钛核使用你自己的模型账号，不上传任何数据。<br>点右上角「设置 → 模型」，或下方「请选择模型」，填入 DeepSeek / 通义 / 豆包等 API Key 即可开始使用。";
+          tip.innerHTML = "💡 <b>还没有配置模型</b>：为道使用你自己的模型账号，不上传任何数据。<br>点右上角「设置 → 模型」，或下方「请选择模型」，填入 DeepSeek / 通义 / 豆包等 API Key 即可开始使用。";
           el.insertAdjacentElement("afterend", tip);
         }
       } catch (e) {
@@ -276,7 +276,7 @@ window.__ModuleLoader__.load({
     }
 
     // 锁定浏览器/窗口标题（防被内核动态改回 DeepSeek Harness）
-    const TC_TITLE = "钛核 TAICORE";
+    const TC_TITLE = "为道 WeDAO";
     function lockTitle() {
       try { if (document.title !== TC_TITLE) document.title = TC_TITLE; } catch (e) {}
     }

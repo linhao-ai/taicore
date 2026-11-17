@@ -1,7 +1,7 @@
 {
   "name": "taicore-license",
   "version": "0.1.0",
-  "description": "钛核 TAICORE 客户端授权：授权码离线验签、激活浮层、到期提示",
+  "description": "为道 WeDAO 客户端授权：授权码离线验签、激活浮层、到期提示",
   "type": "module",
   "main": "./lib/index.mjs",
   "exports": {
