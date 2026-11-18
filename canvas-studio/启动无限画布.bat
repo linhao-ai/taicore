@@ -23,8 +23,8 @@ pause
 exit /b 1
 
 :run
-rem Silent extension update (background, non-blocking)
-if exist "%APPDATA%\WeDAO\ext\updater.mjs" start "" /min "%NODE_EXE%" "%APPDATA%\WeDAO\ext\updater.mjs" --quiet
+rem Silent update check (background, non-blocking)
+if exist "%~dp0..\ext\run-updater.cmd" start "" /min "%~dp0..\ext\run-updater.cmd"
 start "" http://127.0.0.1:8795
 cd /d "%ROOT%"
 "%NODE_EXE%" server.mjs
