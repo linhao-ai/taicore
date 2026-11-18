@@ -61,7 +61,9 @@ export function putFileWithCurl(o) {
   const url = `https://${host}${objPath}`;
   for (let attempt = 1; attempt <= 3; attempt++) {
     const r = spawnSync('curl.exe', [
-      '-sS', '--fail', '--max-time', '3600',
+      '-sS', '--fail', '--http1.1', '--max-time', '1800',
+      '--speed-time', '60', '--speed-limit', '20000',
+      '--retry', '2', '--retry-delay', '5',
       '-X', 'PUT',
       '-H', `Authorization: ${auth}`,
       '-H', `Content-Type: ${o.contentType || 'application/octet-stream'}`,
