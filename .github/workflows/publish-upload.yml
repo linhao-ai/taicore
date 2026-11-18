@@ -26,6 +26,9 @@ jobs:
   upload:
     runs-on: windows-latest
     timeout-minutes: 60
+    permissions:
+      actions: read
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
