@@ -1,0 +1,46 @@
+name: publish-parts
+
+# 把一个已完成的构建产物切成小片上传 COS（规避跨国大文件上传卡死）
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: '构建的 run id'
+        required: true
+      version:
+        description: '版本号（例如 1.2.2）'
+        required: true
+      cos_secret_id:
+        description: 'COS SecretId'
+        required: true
+      cos_secret_key:
+        description: 'COS SecretKey'
+        required: true
+      part_mb:
+        description: '分片大小 MB'
+        required: false
+        default: '20'
+
+jobs:
+  parts:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: TAICORE-windows
+          path: out
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload parts to COS
+        shell: pwsh
+        env:
+          COS_SECRET_ID: ${{ inputs.cos_secret_id }}
+          COS_SECRET_KEY: ${{ inputs.cos_secret_key }}
+        run: |
+          Get-ChildItem out | Format-Table Name,Length
+          node scripts/upload-parts.mjs --file out/TAICORE-Setup.exe --version "${{ inputs.version }}" --part-mb "${{ inputs.part_mb }}"
