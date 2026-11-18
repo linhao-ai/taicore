@@ -2,6 +2,17 @@ name: build-taicore
 
 on:
   workflow_dispatch:
+    inputs:
+      cos_secret_id:
+        description: 'COS SecretId（留空则跳过上传）'
+        required: false
+      cos_secret_key:
+        description: 'COS SecretKey'
+        required: false
+      publish_notes:
+        description: '更新说明'
+        required: false
+        default: ''
   push:
     branches: [main]
 
@@ -142,4 +153,14 @@ jobs:
         with:
           name: TAICORE-windows
           path: out/*
-          retention-days: 30
+
+      - name: Publish to COS (installer + latest.json)
+        if: ${{ inputs.cos_secret_id != '' && inputs.cos_secret_key != '' }}
+        shell: pwsh
+        env:
+          COS_SECRET_ID: ${{ inputs.cos_secret_id }}
+          COS_SECRET_KEY: ${{ inputs.cos_secret_key }}
+        run: |
+          $ver = (Get-Content 'branding-repo/branding/tauri.conf.json' -Raw | ConvertFrom-Json).version
+          Write-Host "publishing version $ver"
+          node branding-repo/scripts/upload-installer.mjs --file out/TAICORE-Setup.exe --version $ver --notes "${{ inputs.publish_notes }}"
