@@ -15,8 +15,20 @@ const UPDATE_ROOT = path.join(path.dirname(EXT_ROOT), 'updates');
 const VERSIONS_FILE = path.join(EXT_ROOT, 'versions.json');
 const PENDING_FILE = path.join(EXT_ROOT, 'pending-app.json');
 const LOG_FILE = path.join(EXT_ROOT, 'update.log');
-const INSTALL_DIR = process.env.WEDAO_INSTALL_DIR || path.join(os.homedir(), 'AppData', 'Local', 'Programs', 'WeDAO');
+function detectInstallDir() {
+  const env = process.env.WEDAO_INSTALL_DIR;
+  if (env && fs.existsSync(path.join(env, 'dsh-tauri-app.exe'))) return env;
+  const cands = [
+    path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local'), 'WeDAO'),
+    path.join(os.homedir(), 'AppData', 'Local', 'WeDAO'),
+    path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local'), 'Programs', 'WeDAO'),
+  ];
+  for (const c of cands) { try { if (fs.existsSync(path.join(c, 'dsh-tauri-app.exe'))) return c; } catch {} }
+  return cands[0];
+}
+const INSTALL_DIR = detectInstallDir();
 const DRYRUN = process.env.WEDAO_APP_UPDATE_DRYRUN === '1';
+const WEDAO_PORTABLE = (() => { try { return fs.existsSync(path.join(INSTALL_DIR, 'portable.flag')); } catch { return false; } })();
 const quiet = process.argv.includes('--quiet');
 const force = process.argv.includes('--force');
 const checkOnly = process.argv.includes('--check-only');
@@ -105,8 +117,19 @@ async function downloadToBuffer(url) {
 
 /* ---------------- 客户端本体更新 ---------------- */
 function installedVersion() {
-  const pkgPath = path.join(INSTALL_DIR, 'dsh-desktop', 'package.json');
-  const pkg = readJson(pkgPath, null);
+  // 1) 安装器写入的 version.json（构建时生成，最准）
+  for (const p of [path.join(INSTALL_DIR, 'version.json'), path.join(INSTALL_DIR, 'dsh-desktop', 'version.json')]) {
+    const v = readJson(p, null);
+    if (v && v.version) return v.version;
+  }
+  // 2) 注册表 DisplayVersion
+  try {
+    const r = spawnSync('reg', ['query', 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall', '/s', '/f', 'WeDAO'], { encoding: 'utf8' });
+    const m = /DisplayVersion\s+REG_SZ\s+([\d.]+)/.exec(r.stdout || '');
+    if (m) return m[1];
+  } catch {}
+  // 3) 兜底：dsh-desktop/package.json（内核版本，仅参考）
+  const pkg = readJson(path.join(INSTALL_DIR, 'dsh-desktop', 'package.json'), null);
   return (pkg && pkg.version) || null;
 }
 
@@ -130,6 +153,7 @@ function scheduleSilentInstall(installer) {
 }
 
 async function updateApp() {
+  if (WEDAO_PORTABLE) { log('便携版：跳过内核自更新'); return 0; }
   const cur = installedVersion();
   if (!cur) { log('未找到已安装版本信息，跳过本体更新'); return 0; }
   let latest;

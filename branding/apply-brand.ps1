@@ -15,7 +15,7 @@ if (-not (Test-Path -LiteralPath $appDir)) { throw "upstream not found: $appDir"
 
 # 1) 壳层配置与图标
 $confDst = [System.IO.Path]::Combine($appDir, 'src', 'app', 'tauri.conf.json')
-$iconDir = [System.IO.Path]::Combine($appDir, 'icons')
+$iconDir = [System.IO.Path]::Combine($appDir, 'src', 'app', 'icons')
 Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'tauri.conf.json')) $confDst -Force
 New-Item -ItemType Directory -Force -Path $iconDir | Out-Null
 Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'icon.ico')) ([System.IO.Path]::Combine($iconDir, 'icon.ico')) -Force

@@ -134,6 +134,14 @@ jobs:
             Write-Host '[bundle] ext updater ready'
           }
 
+      - name: Write version.json (for self-update)
+        shell: pwsh
+        working-directory: upstream/dsh-tauri
+        run: |
+          $ver = (Get-Content 'src/app/tauri.conf.json' -Raw | ConvertFrom-Json).version
+          @{ version = $ver; product = 'WeDAO'; builtAt = (Get-Date).ToString('o') } | ConvertTo-Json | Set-Content 'pp/version.json' -Encoding UTF8
+          Write-Host "[version] pp/version.json -> $ver"
+
       - name: Build installer
         working-directory: upstream/dsh-tauri
         run: npx --yes @tauri-apps/cli build --config src-tauri/src/app/tauri.conf.json --target x86_64-pc-windows-msvc
