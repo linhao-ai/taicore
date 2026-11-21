@@ -22,6 +22,9 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      TAURI_SIGNING_PRIVATE_KEY: ${{ inputs.tauri_private_key }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
     timeout-minutes: 120
     steps:
       - name: Checkout upstream (DSH Desktop)
