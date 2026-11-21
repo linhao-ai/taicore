@@ -26,7 +26,6 @@ if (-not (Test-Path -LiteralPath $appDir)) { throw "upstream not found: $appDir"
 $confDst = [System.IO.Path]::Combine($appDir, 'src', 'app', 'tauri.conf.json')
 $iconDir = [System.IO.Path]::Combine($appDir, 'src', 'app', 'icons')
 Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'tauri.conf.json')) $confDst -Force
-Strip-Bom (Join-Path $TauriDir "tauri.conf.json")
 New-Item -ItemType Directory -Force -Path $iconDir | Out-Null
 Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'icon.ico')) ([System.IO.Path]::Combine($iconDir, 'icon.ico')) -Force
 Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'icon.png')) ([System.IO.Path]::Combine($iconDir, 'icon.png')) -Force
@@ -121,3 +120,7 @@ if (Test-Path -LiteralPath $licSrc) {
     }
   }
 }
+
+# STRIP_AT_END：确保 tauri.conf.json 无 BOM
+$confPath = Join-Path $Upstream 'dsh-tauri/src-tauri/src/app/tauri.conf.json'
+if (Test-Path $confPath) { Strip-Bom $confPath }
