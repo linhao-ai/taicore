@@ -1,3 +1,11 @@
+
+# 复制后去 BOM（Node JSON.parse 不接受 BOM）
+function Strip-Bom([string]$p) {
+  if (-not (Test-Path $p)) { return }
+  $t = [System.IO.File]::ReadAllText($p)
+  if ($t.Length -gt 0 -and $t[0] -eq [char]0xFEFF) { $t = $t.Substring(1) }
+  [System.IO.File]::WriteAllText($p, $t, (New-Object System.Text.UTF8Encoding($false)))
+}
 # 把钛核品牌注入上游仓库（CI 或本地构建时调用）
 # 用法：pwsh -File branding/apply-brand.ps1 -Upstream upstream -Branding .
 
@@ -17,6 +25,7 @@ if (-not (Test-Path -LiteralPath $appDir)) { throw "upstream not found: $appDir"
 $confDst = [System.IO.Path]::Combine($appDir, 'src', 'app', 'tauri.conf.json')
 $iconDir = [System.IO.Path]::Combine($appDir, 'src', 'app', 'icons')
 Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'tauri.conf.json')) $confDst -Force
+Strip-Bom (Join-Path $TauriDir "tauri.conf.json")
 New-Item -ItemType Directory -Force -Path $iconDir | Out-Null
 Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'icon.ico')) ([System.IO.Path]::Combine($iconDir, 'icon.ico')) -Force
 Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'icon.png')) ([System.IO.Path]::Combine($iconDir, 'icon.png')) -Force
