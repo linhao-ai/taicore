@@ -3,6 +3,9 @@ name: build-taicore
 on:
   workflow_dispatch:
     inputs:
+      tauri_private_key:
+        description: 'Tauri signing key'
+        required: false
       cos_secret_id:
         description: 'COS SecretId（留空则跳过上传）'
         required: false
