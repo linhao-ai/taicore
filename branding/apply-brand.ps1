@@ -124,3 +124,10 @@ if (Test-Path -LiteralPath $licSrc) {
 # STRIP_AT_END：确保 tauri.conf.json 无 BOM
 $confPath = Join-Path $Upstream 'dsh-tauri/src-tauri/src/app/tauri.conf.json'
 if (Test-Path $confPath) { Strip-Bom $confPath }
+
+
+# 品牌启动页（粒子 + 文案）
+$splashScript = Join-Path $PSScriptRoot 'patch-splash.ps1'
+if (Test-Path $splashScript) {
+  try { & $splashScript -Upstream $Upstream } catch { Write-Host "[splash] failed: $_" }
+}
