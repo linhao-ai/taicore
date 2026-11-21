@@ -1,11 +1,4 @@
 
-# 复制后去 BOM（Node JSON.parse 不接受 BOM）
-function Strip-Bom([string]$p) {
-  if (-not (Test-Path $p)) { return }
-  $t = [System.IO.File]::ReadAllText($p)
-  if ($t.Length -gt 0 -and $t[0] -eq [char]0xFEFF) { $t = $t.Substring(1) }
-  [System.IO.File]::WriteAllText($p, $t, (New-Object System.Text.UTF8Encoding($false)))
-}
 # 把钛核品牌注入上游仓库（CI 或本地构建时调用）
 # 用法：pwsh -File branding/apply-brand.ps1 -Upstream upstream -Branding .
 
@@ -13,6 +6,14 @@ param(
   [string]$Upstream = 'upstream',
   [string]$Branding = '.'
 )
+
+# 复制后去 BOM（Node JSON.parse 不接受 BOM）
+function Strip-Bom([string]$p) {
+  if (-not (Test-Path $p)) { return }
+  $t = [System.IO.File]::ReadAllText($p)
+  if ($t.Length -gt 0 -and $t[0] -eq [char]0xFEFF) { $t = $t.Substring(1) }
+  [System.IO.File]::WriteAllText($p, $t, (New-Object System.Text.UTF8Encoding($false)))
+}
 
 $ErrorActionPreference = 'Stop'
 
