@@ -1,4 +1,4 @@
-﻿{
+{
     "$schema":  "https://schema.tauri.app/config/2",
     "productName":  "WeDAO",
     "version":  "1.2.4",
