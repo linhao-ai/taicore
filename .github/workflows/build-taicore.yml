@@ -151,17 +151,17 @@ jobs:
           }
 
       - name: Bundle account + service manager
-  shell: pwsh
-  run: |
-    foreach ($svc in @('account-service','service-manager')) {
-      if (Test-Path "branding-repo/$svc") {
-        $dstSvc = Join-Path $pp $svc
-        New-Item -ItemType Directory -Force -Path $dstSvc | Out-Null
-        Copy-Item -Recurse -Force "branding-repo/$svc/*" $dstSvc
-        Write-Host "[bundle] $svc ready"
-      }
-    }
-- name: Write version.json (for self-update)
+        shell: pwsh
+        run: |
+          foreach ($svc in @('account-service','service-manager')) {
+            if (Test-Path "branding-repo/$svc") {
+              $dstSvc = Join-Path $pp $svc
+              New-Item -ItemType Directory -Force -Path $dstSvc | Out-Null
+              Copy-Item -Recurse -Force "branding-repo/$svc/*" $dstSvc
+              Write-Host "[bundle] $svc ready"
+            }
+          }
+      - name: Write version.json (for self-update)
         shell: pwsh
         working-directory: upstream/dsh-tauri
         run: |
