@@ -24,12 +24,13 @@ if (!secretId || !secretKey) { console.error('缺少 COS 凭据'); process.exit(
 const buf = fs.readFileSync(file);
 const sha = crypto.createHash('sha256').update(buf).digest('hex');
 const sizes = buf.length;
-const key = `WeDAO-Setup-${version}.exe`;
+const key = `assets/app/WeDAO-Setup-${version}.exe`; // 公开读目录（与 latest.json 同前缀）
 const base = { bucket: 'taicore-1453181681', region: 'ap-guangzhou', secretId, secretKey };
 
 console.log(`uploading ${path.basename(file)} ${(sizes / 1048576).toFixed(1)}MB -> ${key}`);
 await putFileWithCurl({ ...base, key, file, contentType: 'application/octet-stream', cacheControl: 'no-cache' });
 console.log('installer url: https://dl.wedao.org.cn/' + key);
+console.log('public check: https://dl.wedao.org.cn/' + key);
 console.log('sha256:', sha);
 
 // 读取 Tauri 更新签名（构建时生成的 .sig）
