@@ -32,8 +32,19 @@ await putFileWithCurl({ ...base, key, file, contentType: 'application/octet-stre
 console.log('installer url: https://dl.wedao.org.cn/' + key);
 console.log('sha256:', sha);
 
+// 读取 Tauri 更新签名（构建时生成的 .sig）
+let signature = '';
+try {
+  const sigCandidates = [file + '.sig', file.replace(/\.exe$/i, '.exe.sig'), 'out/TAICORE-Setup.exe.sig'];
+  for (const p of sigCandidates) {
+    if (fs.existsSync(p)) { signature = fs.readFileSync(p, 'utf8').trim(); break; }
+  }
+  if (!signature) console.warn('[warn] 未找到 .sig，latest.json 将无签名（自动更新不可用）');
+} catch (e) { console.warn('[warn] 读取 .sig 失败:', e.message); }
+
 const latest = {
   schema: 1,
+  signature,
   version,
   url: 'https://dl.wedao.org.cn/' + key,
   sha256: sha,
