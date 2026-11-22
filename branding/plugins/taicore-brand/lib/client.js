@@ -697,3 +697,52 @@ window.__ModuleLoader__.load({
 })();
 
 /* lazy service */
+
+/* TAICORE_TECH_V1_GATED：仅 WeDAO 安装版生效（UA 含 dsh-tauri-app），开发版不受影响 */
+(function () {
+  try {
+    if (typeof window === 'undefined' || window.__tcTechGated) return;
+    window.__tcTechGated = true;
+    var ua = String(navigator.userAgent || '');
+    if (!/dsh-tauri-app|WeDAO\\b/i.test(ua)) return;   // 非 WeDAO 客户端 → 不启用
+    try {
+      var native = window.matchMedia ? window.matchMedia.bind(window) : null;
+      if (native) {
+        var fake = function (q) {
+          var mql = null; try { mql = native(q); } catch (e) {}
+          return { media: q, matches: true, onchange: null,
+            addEventListener: function (t, fn) { if (mql && mql.addEventListener) mql.addEventListener(t, fn); },
+            removeEventListener: function (t, fn) { if (mql && mql.removeEventListener) mql.removeEventListener(t, fn); },
+            addListener: function (fn) { if (mql && mql.addListener) mql.addListener(fn); },
+            removeListener: function (fn) { if (mql && mql.removeListener) mql.removeListener(fn); },
+            dispatchEvent: function () { return true; } };
+        };
+        window.matchMedia = function (q) {
+          var s = String(q || '');
+          if (/prefers-color-scheme\s*:\s*dark/i.test(s)) return fake(s);
+          if (/prefers-color-scheme\s*:\s*light/i.test(s)) return fake(s.replace(/light/i, 'dark'));
+          return native(q);
+        };
+      }
+    } catch (e) {}
+    var CSS = [
+      ':root{--tc-cyan:#22d3ee;--tc-gold:#f3c04a;--tc-line:rgba(120,200,255,.10);--tc-card:rgba(13,21,36,.72)}',
+      'html{color-scheme:dark !important}',
+      'body{background:radial-gradient(1200px 700px at 18% -10%,rgba(34,211,238,.10),transparent 60%),radial-gradient(900px 600px at 90% 0%,rgba(99,102,241,.10),transparent 55%),linear-gradient(180deg,#05070d,#070b14 60%,#05070d) !important}',
+      '[class*="topbar"],[class*="titlebar"],[class*="toolbar"]{background:rgba(6,10,18,.72) !important;border-bottom:1px solid var(--tc-line) !important;backdrop-filter:blur(10px)}',
+      '[class*="sidebar"],[class*="Sidebar"]{background:linear-gradient(180deg,rgba(10,18,32,.86),rgba(6,10,18,.92)) !important;border-right:1px solid var(--tc-line) !important;backdrop-filter:blur(12px)}',
+      '[class*="card"],[class*="Card"],[class*="panel"],[class*="Panel"]{background:var(--tc-card) !important;border:1px solid var(--tc-line) !important;box-shadow:0 10px 30px rgba(0,0,0,.35) !important}',
+      '::selection{background:rgba(34,211,238,.25)}',
+      'body::before{content:"";position:fixed;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(34,211,238,.55),rgba(243,192,74,.35),transparent);z-index:9999;pointer-events:none}',
+    ].join('\n');
+    function apply() {
+      if (document.getElementById('tc-tech-gated')) return;
+      var st = document.createElement('style');
+      st.id = 'tc-tech-gated';
+      st.textContent = CSS;
+      (document.head || document.documentElement).appendChild(st);
+    }
+    apply();
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply);
+  } catch (e) {}
+})();
