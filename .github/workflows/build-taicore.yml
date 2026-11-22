@@ -154,8 +154,8 @@ jobs:
         shell: pwsh
         run: |
           $pp = 'upstream/dsh-tauri/pp'
-    if (-not (Test-Path $pp)) { throw "payload dir not found: $pp" }
-    foreach ($svc in @('account-service','service-manager')) {
+          if (-not (Test-Path $pp)) { throw "payload dir not found: $pp" }
+          foreach ($svc in @('account-service','service-manager')) {
             if (Test-Path "branding-repo/$svc") {
               $dstSvc = Join-Path $pp $svc
               New-Item -ItemType Directory -Force -Path $dstSvc | Out-Null
