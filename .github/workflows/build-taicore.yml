@@ -111,6 +111,15 @@ jobs:
           New-Item -ItemType Directory -Force -Path (Join-Path $dst 'bin') | Out-Null
           Copy-Item (Join-Path $tmp 'package/ffmpeg.exe') (Join-Path $dst 'bin/ffmpeg.exe') -Force
           Write-Host '[bundle] video workshop + ffmpeg ready'
+        # WEDAO_ACCOUNT_BUNDLE：账号服务 + 服务管理器
+        foreach ($svc in @('account-service','service-manager')) {
+          if (Test-Path "branding-repo/$svc") {
+            $dstSvc = Join-Path $pp $svc
+            New-Item -ItemType Directory -Force -Path $dstSvc | Out-Null
+            Copy-Item -Recurse -Force "branding-repo/$svc/*" $dstSvc
+            Write-Host "[bundle] $svc ready"
+          }
+        }
           if (Test-Path 'branding-repo/usage-center') {
             $dst2 = Join-Path $pp 'usage-center'
             if (Test-Path $dst2) { Remove-Item $dst2 -Recurse -Force }
