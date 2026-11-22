@@ -157,3 +157,29 @@ if (Test-Path $iconsSrcDir) {
 } else {
   Write-Host '[warn] branding/icons 不存在'
 }
+
+
+# TAICORE_SERVICES_INSTALL：服务自启插件（复制 + 注册）
+$svcSrc = [System.IO.Path]::Combine($Branding, 'plugins', 'taicore-services')
+$svcDst = [System.IO.Path]::Combine($Upstream, 'dsh-desktop', 'assets', 'plugins', 'taicore-services')
+if (Test-Path $svcSrc) {
+  New-Item -ItemType Directory -Force -Path $svcDst | Out-Null
+  Copy-Item -Path ([System.IO.Path]::Combine($svcSrc, '*')) -Destination $svcDst -Recurse -Force
+  Write-Host '[ok] plugin -> assets/plugins/taicore-services'
+
+  $regSvc = [System.IO.Path]::Combine($Upstream, 'dsh-desktop', 'scripts', 'lib', 'companion-plugins.js')
+  if (Test-Path $regSvc) {
+    $tSvc = [System.IO.File]::ReadAllText($regSvc)
+    if ($tSvc -notmatch 'taicore-services') {
+      $entry = "  { id: 'taicore-services', name: 'taicore-services' },"
+      $anchorSvc = "  { id: 'taicore-brand', name: 'taicore-brand' },"
+      if ($tSvc.Contains($anchorSvc)) {
+        $tSvc = $tSvc.Replace($anchorSvc, $entry + "`r`n" + $anchorSvc)
+      } else {
+        $tSvc = $tSvc.Replace("module.exports = [", "module.exports = [`r`n" + $entry)
+      }
+      [System.IO.File]::WriteAllText($regSvc, $tSvc, (New-Object System.Text.UTF8Encoding($false)))
+      Write-Host '[ok] registered taicore-services in companion list'
+    }
+  }
+}
