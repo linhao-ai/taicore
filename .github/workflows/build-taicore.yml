@@ -192,8 +192,10 @@ jobs:
           $b64 = "${{ inputs.tauri_private_key }}"
           if (-not [string]::IsNullOrWhiteSpace($b64)) {
             $txt = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($b64))
-            $env:TAURI_SIGNING_PRIVATE_KEY = $txt
-            Write-Host ("[key] first=" + $txt.Substring(0, [Math]::Min(30, $txt.Length)))
+            $keyPath = Join-Path $env:RUNNER_TEMP "tauri.key"
+            [System.IO.File]::WriteAllText($keyPath, $txt, (New-Object System.Text.UTF8Encoding($false)))
+            $env:TAURI_SIGNING_PRIVATE_KEY = $keyPath
+            Write-Host ("[key] file=" + $keyPath + " size=" + (Get-Item $keyPath).Length)
           } else { Write-Host "[key] empty, skip signing" }
           npx --yes @tauri-apps/cli build --config src-tauri/src/app/tauri.conf.json --target x86_64-pc-windows-msvc
 
