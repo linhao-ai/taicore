@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>为道 WeDAO · 登录</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#05070d;font-family:"Microsoft YaHei",system-ui,sans-serif;color:#e9f1ff;overflow:hidden}
+#bg{position:fixed;inset:0;z-index:0}
+.glow{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(760px 480px at 50% 12%,rgba(34,211,238,.14),transparent 66%)}
+.wrap{position:relative;z-index:2;height:100%;display:flex;align-items:center;justify-content:center}
+.card{width:400px;padding:34px 30px 26px;border-radius:20px;
+  background:linear-gradient(165deg,rgba(18,28,46,.92),rgba(10,16,28,.96));
+  border:1px solid rgba(120,200,255,.16);backdrop-filter:blur(14px);
+  box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 40px rgba(34,211,238,.08)}
+.brand{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:6px}
+.brand img{width:44px;height:44px;filter:drop-shadow(0 0 12px rgba(245,194,75,.5))}
+h1{font-size:19px;text-align:center;letter-spacing:.02em}
+.sub{text-align:center;font-size:12px;color:#7c8ba6;margin:6px 0 22px;letter-spacing:.16em}
+label{display:block;font-size:12px;color:#8ba0bf;margin:14px 0 6px}
+input{width:100%;padding:12px 14px;border-radius:11px;background:rgba(8,14,24,.9);
+  border:1px solid rgba(120,200,255,.18);color:#e9f1ff;font-size:14px;outline:none}
+input:focus{border-color:rgba(34,211,238,.5);box-shadow:0 0 0 3px rgba(34,211,238,.10)}
+.code-row{display:flex;gap:8px}
+.code-row input{flex:1}
+button{cursor:pointer;border-radius:11px;font-size:14px;font-family:inherit;border:0}
+.btn-main{width:100%;margin-top:20px;padding:13px;font-weight:800;
+  background:linear-gradient(135deg,#22d3ee,#6366f1);color:#04121a;
+  box-shadow:0 12px 30px rgba(34,211,238,.24)}
+.btn-main:disabled{opacity:.55;cursor:wait}
+.btn-ghost{padding:12px 14px;border:1px solid rgba(120,200,255,.22);background:transparent;color:#bff3ff;white-space:nowrap}
+.divider{display:flex;align-items:center;gap:10px;color:#4f5d75;font-size:11.5px;margin:20px 0}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:rgba(120,200,255,.14)}
+.btn-wx{width:100%;padding:12px;background:rgba(7,193,96,.12);color:#5be9a6;
+  border:1px solid rgba(7,193,96,.35)}
+.msg{min-height:18px;margin-top:12px;font-size:12.5px;color:#8ba0bf;text-align:center}
+.msg.err{color:#ff8fa3}.msg.ok{color:#5be9b9}
+.tip{font-size:11px;color:#4f5d75;text-align:center;margin-top:16px;line-height:1.7}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas><div class="glow"></div>
+<div class="wrap">
+  <div class="card">
+    <div class="brand"><img src="https://dl.wedao.org.cn/assets/brand/logo-mark.png" alt="为道"></div>
+    <h1>为道 WeDAO</h1>
+    <div class="sub">AI 工作台 · 登录</div>
+
+    <label>手机号</label>
+    <input id="mobile" placeholder="请输入手机号" maxlength="11" inputmode="numeric">
+
+    <label>验证码</label>
+    <div class="code-row">
+      <input id="code" placeholder="6 位验证码" maxlength="6" inputmode="numeric">
+      <button class="btn-ghost" id="btnSend">获取验证码</button>
+    </div>
+
+    <button class="btn-main" id="btnLogin">登录 / 注册</button>
+
+    <div class="divider">或</div>
+    <button class="btn-wx" id="btnWx">微信扫码登录</button>
+
+    <div class="msg" id="msg"></div>
+    <div class="tip">新用户赠送 10 次免费额度 · 一个账号可绑定 2 台设备</div>
+  </div>
+</div>
+<script>
+(function(){
+  // 粒子背景
+  var c=document.getElementById('bg'),x=c.getContext('2d'),W,H,P=[],N=130,D=170;
+  function rs(){var d=devicePixelRatio||1;W=innerWidth;H=innerHeight;c.width=W*d;c.height=H*d;c.style.width=W+'px';c.style.height=H+'px';x.setTransform(d,0,0,d,0,0)}
+  function init(){P=[];for(var i=0;i<N;i++)P.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.24,vy:(Math.random()-.5)*.24,r:Math.random()*1.2+.4})}
+  function loop(){x.clearRect(0,0,W,H);
+    for(var i=0;i<P.length;i++){var p=P[i];p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
+      x.beginPath();x.arc(p.x,p.y,p.r,0,7);x.fillStyle='rgba(120,214,255,.30)';x.fill()}
+    for(var a=0;a<P.length;a++)for(var b=a+1;b<P.length;b++){var dx=P[a].x-P[b].x,dy=P[a].y-P[b].y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<D){x.beginPath();x.moveTo(P[a].x,P[a].y);x.lineTo(P[b].x,P[b].y);
+        x.strokeStyle='rgba(46,190,235,'+(0.08*(1-d/D)).toFixed(3)+')';x.lineWidth=1;x.stroke()}}
+    requestAnimationFrame(loop)}
+  rs();init();loop();addEventListener('resize',function(){rs();init()});
+
+  // 登录逻辑
+  var API = location.origin;
+  var msg=document.getElementById('msg');
+  function say(t,ok){ msg.className='msg'+(ok===true?' ok':ok===false?' err':''); msg.textContent=t; }
+  function deviceId(){ var k='wedao_device'; var v=localStorage.getItem(k); if(!v){ v='pc-'+Math.random().toString(36).slice(2,10); localStorage.setItem(k,v);} return v; }
+
+  document.getElementById('btnSend').onclick=async function(){
+    var m=document.getElementById('mobile').value.trim();
+    if(!/^1[3-9]\d{9}$/.test(m)) return say('请输入正确的手机号',false);
+    this.disabled=true; say('发送中…');
+    try{
+      var r=await fetch(API+'/api/auth/sms/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mobile:m})});
+      var j=await r.json();
+      if(!j.ok) throw new Error(j.reason||'发送失败');
+      say(j.devCode?('验证码：'+j.devCode+'（开发模式）'):'验证码已发送',true);
+      if(j.devCode) document.getElementById('code').value=j.devCode;
+    }catch(e){ say('失败：'+e.message,false); }
+    finally{ var b=this; var t=60; b.textContent=t+'s'; var iv=setInterval(function(){ t--; b.textContent=t+'s'; if(t<=0){clearInterval(iv); b.disabled=false; b.textContent='获取验证码';} },1000); }
+  };
+
+  document.getElementById('btnLogin').onclick=async function(){
+    var m=document.getElementById('mobile').value.trim();
+    var code=document.getElementById('code').value.trim();
+    if(!/^1[3-9]\d{9}$/.test(m)) return say('请输入正确的手机号',false);
+    if(!/^\d{6}$/.test(code)) return say('请输入 6 位验证码',false);
+    this.disabled=true; say('登录中…');
+    try{
+      var r=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mobile:m,code:code,deviceId:deviceId()})});
+      var j=await r.json();
+      if(!j.ok) throw new Error(j.reason||'登录失败');
+      localStorage.setItem('wedao_token',j.token);
+      try { if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'wedao-login', token: j.token, credits: j.user.credits }, '*'); } catch (e) {}
+      say('登录成功，剩余 '+j.user.credits+' 次',true);
+      setTimeout(function(){ location.href='/welcome'; },700);
+    }catch(e){ say('失败：'+e.message,false); this.disabled=false; }
+  };
+
+  document.getElementById('btnWx').onclick=function(){ say('微信扫码登录待接入（需微信开放平台 AppID）',false); };
+})();
+</script>
+</body>
+</html>
