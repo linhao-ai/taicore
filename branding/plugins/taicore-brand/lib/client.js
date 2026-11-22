@@ -344,12 +344,13 @@ window.__ModuleLoader__.load({
   try {
     if (typeof document === 'undefined') return;
     var FEATURES = [
-      { name: 'AI 一键出图', url: 'http://127.0.0.1:8793/proposal.html', svc: 'img', desc: '上传商品图 → 主图 + 详情页' },
-      { name: '主图设计器', url: 'http://127.0.0.1:8793/designer.html', svc: 'img', desc: '拖拽排版 · 描边 · 导出 PNG' },
-      { name: 'AI 员工团队', url: 'http://127.0.0.1:8796/', svc: 'team', desc: '圆桌会议 · 单聊 · 团队任务流水线' },
-      { name: '视频工坊', url: 'http://127.0.0.1:8790/', svc: 'video', desc: 'AI 配图 + 文案 + 配音 + 自动成片' },
-      { name: '获客助手', url: '', desc: '即将上线' },
-      { name: '客服助手', url: '', desc: '即将上线' },
+      { name: 'AI 一键出图', url: '/proposal.html', desc: '上传商品图 → 主图 + 详情页' },
+      { name: '主图设计器', url: '/designer.html', desc: '拖拽排版 · 描边 · 导出 PNG' },
+      { name: 'AI 员工团队', url: 'http://127.0.0.1:8796/', desc: '圆桌会议 · 单聊 · 团队任务流水线' },
+      { name: '视频工坊', url: 'http://127.0.0.1:8790/', desc: 'AI 配图 + 文案 + 配音 + 自动成片' },
+      { name: '获客助手', url: 'http://127.0.0.1:8792/', desc: '评论意向 · 回复草稿 · 线索' },
+      { name: '获客设置', url: 'http://127.0.0.1:8792/profile', desc: '行业 · 门店 · 产品档案' },
+      { name: '客服助手', url: 'http://127.0.0.1:8792/profile', desc: '话术库 · 售后处理（配置中）' },
       { name: '用量中心', url: '', desc: '即将上线' }
     ];
     var BASE = 'http://127.0.0.1:8793';
@@ -626,123 +627,4 @@ window.__ModuleLoader__.load({
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', inject);
   else inject();
   setInterval(inject, 2000);
-})();
-/* TAICORE_SKIN_UNIFIED：统一品牌皮肤（谨慎：只动品牌位与徽标，不动控件图标） */
-(function () {
-  try {
-    if (typeof document === 'undefined' || window.__tcU) return;
-    window.__tcU = true;
-
-    var LOGO = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 80"><defs>' +
-      '<linearGradient id="g" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FFE9A8"/>' +
-      '<stop offset="0.5" stop-color="#F3C04A"/><stop offset="1" stop-color="#C08F22"/></linearGradient></defs>' +
-      '<text x="80" y="62" text-anchor="middle" fill="url(#g)" font-family="Segoe UI Symbol, Segoe UI, Arial" ' +
-      'font-size="68" font-weight="300">\u221e</text></svg>'
-    );
-
-    function style() {
-      if (document.getElementById('tcU-style')) return;
-      var st = document.createElement('style');
-      st.id = 'tcU-style';
-      st.textContent = [
-        '[class*="sidebar"],[class*="Sidebar"]{background:linear-gradient(180deg,rgba(12,20,34,.94),rgba(8,12,22,.97)) !important}',
-        '[class*="sidebar"] a:hover,[class*="sidebar"] button:hover{background:rgba(34,211,238,.07) !important;border-radius:10px}',
-        '::selection{background:rgba(34,211,238,.25)}'
-      ].join('\n');
-      document.head.appendChild(st);
-    }
-
-    /* 徽标：未授权 → 已授权 */
-    function license() {
-      var nodes = document.querySelectorAll('div,span,a,button');
-      for (var i = 0; i < nodes.length; i++) {
-        var n = nodes[i];
-        if (n.children.length === 0 && (n.textContent || '').trim() === '未授权') {
-          n.textContent = '已授权';
-          n.style.cssText += ';background:rgba(34,211,238,.14);color:#8ff0ff;border:1px solid rgba(34,211,238,.35);border-radius:999px;padding:2px 10px';
-        }
-      }
-    }
-
-    /* 只替换「大尺寸」品牌位图标（>=40px），小图标一律不动 */
-    function brandMarks() {
-      var side = document.querySelector('[class*="sidebar"],[class*="Sidebar"]');
-      if (!side) return;
-      side.querySelectorAll('svg,img').forEach(function (el) {
-        if (el.dataset.tcU) return;
-        var r = el.getBoundingClientRect();
-        if (r.width >= 40 && r.height >= 40) {
-          el.dataset.tcU = '1';
-          if (el.tagName.toLowerCase() === 'img') {
-            el.src = LOGO;
-            el.style.objectFit = 'contain';
-          } else {
-            el.style.display = 'none';
-            var im = document.createElement('img');
-            im.src = LOGO;
-            im.style.cssText = 'width:' + Math.round(r.width) + 'px;height:' + Math.round(r.height) +
-              'px;object-fit:contain;vertical-align:middle';
-            if (el.parentElement) el.parentElement.insertBefore(im, el);
-            im.dataset.tcU = '1';
-          }
-        }
-      });
-    }
-
-    function tick() { style(); license(); brandMarks(); }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick); else tick();
-    setInterval(tick, 1500);
-  } catch (e) {}
-})();
-
-/* lazy service */
-
-/* TAICORE_TECH_V1_GATED：仅 WeDAO 安装版生效（UA 含 dsh-tauri-app），开发版不受影响 */
-(function () {
-  try {
-    if (typeof window === 'undefined' || window.__tcTechGated) return;
-    window.__tcTechGated = true;
-    var ua = String(navigator.userAgent || '');
-    if (!/dsh-tauri-app|WeDAO\\b/i.test(ua)) return;   // 非 WeDAO 客户端 → 不启用
-    try {
-      var native = window.matchMedia ? window.matchMedia.bind(window) : null;
-      if (native) {
-        var fake = function (q) {
-          var mql = null; try { mql = native(q); } catch (e) {}
-          return { media: q, matches: true, onchange: null,
-            addEventListener: function (t, fn) { if (mql && mql.addEventListener) mql.addEventListener(t, fn); },
-            removeEventListener: function (t, fn) { if (mql && mql.removeEventListener) mql.removeEventListener(t, fn); },
-            addListener: function (fn) { if (mql && mql.addListener) mql.addListener(fn); },
-            removeListener: function (fn) { if (mql && mql.removeListener) mql.removeListener(fn); },
-            dispatchEvent: function () { return true; } };
-        };
-        window.matchMedia = function (q) {
-          var s = String(q || '');
-          if (/prefers-color-scheme\s*:\s*dark/i.test(s)) return fake(s);
-          if (/prefers-color-scheme\s*:\s*light/i.test(s)) return fake(s.replace(/light/i, 'dark'));
-          return native(q);
-        };
-      }
-    } catch (e) {}
-    var CSS = [
-      ':root{--tc-cyan:#22d3ee;--tc-gold:#f3c04a;--tc-line:rgba(120,200,255,.10);--tc-card:rgba(13,21,36,.72)}',
-      'html{color-scheme:dark !important}',
-      'body{background:radial-gradient(1200px 700px at 18% -10%,rgba(34,211,238,.10),transparent 60%),radial-gradient(900px 600px at 90% 0%,rgba(99,102,241,.10),transparent 55%),linear-gradient(180deg,#05070d,#070b14 60%,#05070d) !important}',
-      '[class*="topbar"],[class*="titlebar"],[class*="toolbar"]{background:rgba(6,10,18,.72) !important;border-bottom:1px solid var(--tc-line) !important;backdrop-filter:blur(10px)}',
-      '[class*="sidebar"],[class*="Sidebar"]{background:linear-gradient(180deg,rgba(10,18,32,.86),rgba(6,10,18,.92)) !important;border-right:1px solid var(--tc-line) !important;backdrop-filter:blur(12px)}',
-      '[class*="card"],[class*="Card"],[class*="panel"],[class*="Panel"]{background:var(--tc-card) !important;border:1px solid var(--tc-line) !important;box-shadow:0 10px 30px rgba(0,0,0,.35) !important}',
-      '::selection{background:rgba(34,211,238,.25)}',
-      'body::before{content:"";position:fixed;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(34,211,238,.55),rgba(243,192,74,.35),transparent);z-index:9999;pointer-events:none}',
-    ].join('\n');
-    function apply() {
-      if (document.getElementById('tc-tech-gated')) return;
-      var st = document.createElement('style');
-      st.id = 'tc-tech-gated';
-      st.textContent = CSS;
-      (document.head || document.documentElement).appendChild(st);
-    }
-    apply();
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply);
-  } catch (e) {}
 })();

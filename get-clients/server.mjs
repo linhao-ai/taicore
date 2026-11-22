@@ -4,6 +4,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import { loadProfile, saveProfile, profilePrompt } from './lib/profile.mjs';
 import os from 'node:os';
 import crypto from 'node:crypto';
 
@@ -111,7 +112,110 @@ function templatePlan(input) {
 /* ---------------- HTTP ---------------- */
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
 
+
+/* HUOKE_V2：浏览器 + 意向识别 + 草稿生成 */
+async function readModelCfg2() {
+  const p = path.join(process.env.APPDATA || os.homedir(), 'WeDAO', 'model.json');
+  return JSON.parse(fs.readFileSync(p, 'utf8'));
+}
+async function llm2(system, user, temp = 0.7) {
+  const cfg = await readModelCfg2();
+  const r = await fetch((cfg.baseUrl || 'https://api.deepseek.com') + '/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + cfg.apiKey },
+    body: JSON.stringify({ model: cfg.model || 'deepseek-chat', messages: [{ role: 'system', content: system }, { role: 'user', content: user }], temperature: temp, max_tokens: 1200 }),
+  });
+  if (!r.ok) throw new Error('LLM ' + r.status);
+  const j = await r.json();
+  return (j.choices && j.choices[0] && j.choices[0].message.content) || '';
+}
+
+const huokeRoutes = {
+  async '/api/huoke/open'(body) {
+    const m = await import('./lib/browser.mjs');
+    return await m.openBrowser(String(body.platform || 'douyin'));
+  },
+  async '/api/huoke/close'() {
+    const m = await import('./lib/browser.mjs');
+    return await m.closeBrowser();
+  },
+  // XHS_SEARCH_ROUTE：小红书按关键词找笔记 + 抓评论
+  async '/api/huoke/xhs-search'(body) {
+    const m = await import('./lib/browser.mjs');
+    const kw = String(body.keyword || '').slice(0, 40);
+    if (!kw) return { ok: false, reason: '缺少关键词' };
+    const url = 'https://www.xiaohongshu.com/search_result?keyword=' + encodeURIComponent(kw) + '&source=web_search_result_notes';
+    const found = await m.clickFirstXhsNote(url); // CLICK_XHS_NOTE
+    if (!found.ok) return { ok: false, reason: found.reason || '没找到笔记', url, title: found.title, debug: found.debug };
+    const data = await m.readComments('', Number(body.limit || 40), 'xiaohongshu');
+    return { ok: true, keyword: kw, note: found.url, totalNotes: found.tabs || 1, title: data.title, count: data.count, comments: data.comments };
+  },
+  async '/api/huoke/search'(body) {
+    const m = await import('./lib/browser.mjs');
+    const kw = String(body.keyword || '').slice(0, 40);
+    if (!kw) return { ok: false, reason: '缺少关键词' };
+    const url = 'https://www.douyin.com/search/' + encodeURIComponent(kw) + '?type=video';
+    const found = await m.gotoAndFindVideo(url);
+    if (!found.ok) return { ok: false, reason: '没找到视频结果', url, debug: found.debug };
+    const data = await m.readComments(found.link, Number(body.limit || 40), 'xiaohongshu');
+    return { ok: true, keyword: kw, video: found.link, totalVideos: found.total, title: data.title, count: data.count, comments: data.comments };
+  },
+  async '/api/huoke/status'() {
+    const m = await import('./lib/browser.mjs');
+    return await m.status();
+  },
+  async '/api/huoke/comments'(body) {
+    const m = await import('./lib/browser.mjs');
+    return await m.readComments(String(body.url || ''), Number(body.limit || 40), String(body.platform || ''));
+  },
+  async '/api/huoke/intent'(body) {
+    const list = Array.isArray(body.comments) ? body.comments.slice(0, 60) : [];
+    if (!list.length) return { ok: false, reason: '没有评论' };
+    const sys = '你是销售线索分析师。判断每条评论是否有购买意向（想买/问价/问购买方式=有；纯吐槽/无关=无）。只输出JSON数组：[{"i":序号,"intent":true/false,"score":0-100,"reason":"简短理由"}]，不要解释。' + '\\n【门店档案】\\n' + profilePrompt();
+    const txt = await llm2(sys, list.map((c, i) => i + '. ' + c).join('\n'), 0.3);
+    let arr = [];
+    try { arr = JSON.parse(txt.replace(/```json|```/g, '').trim()); } catch (e) { arr = []; }
+    const items = arr.map((x) => ({ comment: list[x.i] || '', intent: !!x.intent, score: Number(x.score || 0), reason: x.reason || '' }));
+    return { ok: true, items: items.filter((x) => x.comment), total: list.length };
+  },
+  async '/api/huoke/draft'(body) {
+    const comment = String(body.comment || '').slice(0, 300);
+    const product = String(body.product || '').slice(0, 60);
+    if (!comment) return { ok: false, reason: '缺少评论内容' };
+    const sys = '你是销售客服。针对用户评论写一条自然、口语化的回复（40字内）。要求：1) 必须具体回应对方说的内容 2) 绝对不能出现微信/手机号/加V/二维码等联系方式 3) 不要像机器人 4) 结尾可引导对方私信或评论。只输出回复内容。';
+    const ctx = '【门店档案】\n' + profilePrompt() + (product ? '\n补充产品：' + product : '');
+  const txt = await llm2(sys, ctx + '\n对方评论：' + comment, 0.8); // PROFILE_DRAFT
+    return { ok: true, draft: String(txt).trim().slice(0, 120) };
+  },
+};
 const server = http.createServer(async (req, res) => {
+  // PROFILE_ROUTE
+  if (req.url === '/api/profile' || req.url.startsWith('/api/profile?')) {
+    if (req.method === 'GET') return sendJson(res, 200, { ok: true, profile: loadProfile() });
+    if (req.method === 'POST') {
+      let body = {};
+      try { body = JSON.parse((await readBody(req)) || '{}'); } catch (e) {}
+      return sendJson(res, 200, { ok: true, profile: saveProfile(body) });
+    }
+  }
+  if (req.url === '/profile' || req.url === '/profile.html') {
+    try {
+      const html = fs.readFileSync(new URL('./public/profile.html', import.meta.url), 'utf8');
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      return res.end(html);
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+      return res.end('profile page missing: ' + e.message);
+    }
+  }
+  const __u = new URL(req.url, 'http://127.0.0.1');
+  if (huokeRoutes[__u.pathname] && req.method === 'POST') {
+    let body = {};
+    try { body = JSON.parse((await readBody(req)) || '{}'); } catch (e) {}
+    try { return sendJson(res, 200, await huokeRoutes[__u.pathname](body)); }
+    catch (e) { return sendJson(res, 200, { ok: false, reason: e.message }); }
+  }
+
   const url = new URL(req.url, `http://127.0.0.1:${PORT}`);
   const p = url.pathname;
 

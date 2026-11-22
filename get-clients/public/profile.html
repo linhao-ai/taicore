@@ -1,0 +1,52 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>为道 · 获客设置</title>
+<style>body{margin:0;background:#070b12;color:#e9f1ff;font-family:"Microsoft YaHei",system-ui}
+.wrap{max-width:760px;margin:0 auto;padding:28px 20px}
+h1{font-size:20px;margin:0 0 6px}.sub{color:#7c8ba6;font-size:12.5px;margin-bottom:18px}
+label{display:block;font-size:12.5px;color:#9db0cc;margin:14px 0 6px}
+input,textarea{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:10px;background:#0c1420;border:1px solid rgba(120,200,255,.18);color:#e9f1ff;font-family:inherit;font-size:13.5px}
+textarea{min-height:70px;resize:vertical}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>div{flex:1;min-width:180px}
+button{margin-top:18px;padding:11px 22px;border:0;border-radius:10px;background:linear-gradient(135deg,#22d3ee,#6366f1);color:#04121a;font-weight:800;cursor:pointer}
+.ok{color:#5be9b9;margin-left:12px;font-size:13px}
+.card{background:rgba(13,21,36,.7);border:1px solid rgba(120,200,255,.12);border-radius:14px;padding:18px;margin-top:14px}
+</style></head><body><div class="wrap">
+<h1>获客设置 · 门店档案</h1>
+<div class="sub">这份档案决定 AI 如何识别意向、如何回话。改完保存即刻生效。</div>
+<div class="card">
+  <div class="row"><div><label>行业</label><input id="industry"></div>
+  <div><label>门店名称</label><input id="storeName"></div>
+  <div><label>城市</label><input id="city"></div></div>
+  <label>位置描述</label><input id="locDesc">
+  <label>房型/产品（每行一个：名称 | 价格 | 可住人数 | 特点）</label>
+  <textarea id="products" style="min-height:96px"></textarea>
+  <label>服务（勾选实际有的）</label>
+  <div class="row">
+    <label><input type="checkbox" id="svc_parking" style="width:auto"> 可停车</label>
+    <label><input type="checkbox" id="svc_cooking" style="width:auto"> 可做饭</label>
+    <label><input type="checkbox" id="svc_airportPickup" style="width:auto"> 可接机</label>
+    <label><input type="checkbox" id="svc_pet" style="width:auto"> 可带宠物</label>
+    <label><input type="checkbox" id="svc_laundry" style="width:auto"> 有洗衣机</label>
+  </div>
+  <label>卖点（每行一条）</label><textarea id="highlights"></textarea>
+  <label>语气风格</label><input id="tone">
+  <button id="save">保存</button><span class="ok" id="msg"></span>
+</div>
+<script>
+const api='/api/profile';
+async function load(){ const p=await (await fetch(api)).json(); const v=p.profile||{};
+ industry.value=v.industry||''; storeName.value=v.storeName||''; city.value=v.city||''; locDesc.value=v.location||'';
+ products.value=(v.products||[]).map(x=>[x.name,x.price,x.capacity,x.features].join(' | ')).join('\n');
+ highlights.value=(v.highlights||[]).join('\n'); tone.value=v.tone||'';
+ const s=v.services||{}; for(const k of ['parking','cooking','airportPickup','pet','laundry']){ const el=document.getElementById('svc_'+k); if(el) el.checked=!!s[k]; }
+}
+save.onclick=async()=>{
+ const productsArr=products.value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{ const p=l.split('|').map(s=>s.trim()); return {name:p[0]||'',price:p[1]||'',capacity:p[2]||'',features:p[3]||''}; });
+ const body={ industry:industry.value, storeName:storeName.value, city:city.value, location:locDesc.value,
+   products:productsArr, highlights:highlights.value.split('\n').map(s=>s.trim()).filter(Boolean), tone:tone.value,
+   services:{ parking:svc_parking.checked, cooking:svc_cooking.checked, airportPickup:svc_airportPickup.checked, pet:svc_pet.checked, laundry:svc_laundry.checked } };
+ const r=await fetch(api,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+ msg.textContent=(await r.json()).ok?'已保存 ✓':'保存失败';
+};
+load();
+</script></div></body></html>
