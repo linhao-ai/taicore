@@ -344,10 +344,10 @@ window.__ModuleLoader__.load({
   try {
     if (typeof document === 'undefined') return;
     var FEATURES = [
-      { name: 'AI 一键出图', url: '/proposal.html', desc: '上传商品图 → 主图 + 详情页' },
-      { name: '主图设计器', url: '/designer.html', desc: '拖拽排版 · 描边 · 导出 PNG' },
-      { name: 'AI 员工团队', url: 'http://127.0.0.1:8796/', desc: '圆桌会议 · 单聊 · 团队任务流水线' },
-      { name: '视频工坊', url: 'http://127.0.0.1:8790/', desc: 'AI 配图 + 文案 + 配音 + 自动成片' },
+      { name: 'AI 一键出图', url: 'http://127.0.0.1:8793/proposal.html', svc: 'img', desc: '上传商品图 → 主图 + 详情页' },
+      { name: '主图设计器', url: 'http://127.0.0.1:8793/designer.html', svc: 'img', desc: '拖拽排版 · 描边 · 导出 PNG' },
+      { name: 'AI 员工团队', url: 'http://127.0.0.1:8796/', svc: 'team', desc: '圆桌会议 · 单聊 · 团队任务流水线' },
+      { name: '视频工坊', url: 'http://127.0.0.1:8790/', svc: 'video', desc: 'AI 配图 + 文案 + 配音 + 自动成片' },
       { name: '获客助手', url: '', desc: '即将上线' },
       { name: '客服助手', url: '', desc: '即将上线' },
       { name: '用量中心', url: '', desc: '即将上线' }
