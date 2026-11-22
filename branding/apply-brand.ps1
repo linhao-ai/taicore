@@ -131,3 +131,19 @@ $splashScript = Join-Path $PSScriptRoot 'patch-splash.ps1'
 if (Test-Path $splashScript) {
   try { & $splashScript -Upstream $Upstream } catch { Write-Host "[splash] failed: $_" }
 }
+
+
+# WEDAO_ICONS_COPY：把品牌图标复制到 tauri-build 要求的位置（src-tauri/icons）
+$iconsSrcDir = Join-Path $Branding 'branding\icons'
+$iconsDstDir = Join-Path $Upstream 'dsh-tauri\src-tauri\icons'
+if (Test-Path $iconsSrcDir) {
+  New-Item -ItemType Directory -Force -Path $iconsDstDir | Out-Null
+  Copy-Item (Join-Path $iconsSrcDir '*') $iconsDstDir -Force -Recurse
+  # 同时兼容默认 icon.ico 名称
+  $wedaoIco = Join-Path $iconsDstDir 'wedao.ico'
+  if (Test-Path $wedaoIco) { Copy-Item $wedaoIco (Join-Path $iconsDstDir 'icon.ico') -Force }
+  Write-Host '[ok] brand icons -> src-tauri/icons'
+  Get-ChildItem $iconsDstDir | ForEach-Object { Write-Host ("  ico: " + $_.Name) }
+} else {
+  Write-Host '[warn] branding/icons 不存在'
+}
