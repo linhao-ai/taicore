@@ -205,6 +205,9 @@ jobs:
           $dst = "out/TAICORE-Setup.exe"
           Copy-Item $exe.FullName $dst
           (Get-FileHash $dst -Algorithm SHA256).Hash.ToLower() | Set-Content "$dst.sha256"
+          # copy-sig：把 Tauri 生成的 .sig 一起收集（自动更新必需）
+          $sig = Get-ChildItem -Path $src -Filter '*.sig' -Recurse | Select-Object -First 1
+          if ($sig) { Copy-Item $sig.FullName "$dst.sig" -Force; Write-Host "[sig] copied -> $dst.sig" } else { Write-Warning '[sig] not found' }
 
       - uses: actions/upload-artifact@v4
         continue-on-error: true
