@@ -171,6 +171,20 @@ jobs:
           @{ version = $ver; product = 'WeDAO'; builtAt = (Get-Date).ToString('o') } | ConvertTo-Json | Set-Content 'pp/version.json' -Encoding UTF8
           Write-Host "[version] pp/version.json -> $ver"
 
+      - name: Decode signing key (WEDAO_KEY_DECODE)
+        shell: pwsh
+        run: |
+          $b64 = "${{ inputs.tauri_private_key }}"
+          if ([string]::IsNullOrWhiteSpace($b64)) { Write-Host '[key] empty, skip'; exit 0 }
+          $txt = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($b64))
+          $p = Join-Path $env:RUNNER_TEMP 'tauri.key'
+          [System.IO.File]::WriteAllText($p, $txt, (New-Object System.Text.UTF8Encoding($false)))
+          $content = [System.IO.File]::ReadAllText($p)
+          $first = $content.Substring(0, [Math]::Min(32, $content.Length))
+          Write-Host "[key] ok first=$first"
+          "TAURI_SIGNING_PRIVATE_KEY<<__KEY_EOF__" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          $content | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "__KEY_EOF__" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
       - name: Build installer
         working-directory: upstream/dsh-tauri
         run: npx --yes @tauri-apps/cli build --config src-tauri/src/app/tauri.conf.json --target x86_64-pc-windows-msvc
