@@ -23,6 +23,7 @@ jobs:
   build:
     runs-on: windows-latest
     env:
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
       TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
     timeout-minutes: 120
     steps:
@@ -186,17 +187,7 @@ jobs:
           "__KEY_EOF__" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
       - name: Build installer
         working-directory: upstream/dsh-tauri
-        shell: pwsh
-        run: |
-          $b64 = "${{ inputs.tauri_private_key }}"
-          if (-not [string]::IsNullOrWhiteSpace($b64)) {
-            $txt = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($b64))
-            $keyPath = Join-Path $env:RUNNER_TEMP "tauri.key"
-            [System.IO.File]::WriteAllText($keyPath, $txt, (New-Object System.Text.UTF8Encoding($false)))
-            $env:TAURI_SIGNING_PRIVATE_KEY = $keyPath
-            Write-Host ("[key] file=" + $keyPath + " size=" + (Get-Item $keyPath).Length)
-          } else { Write-Host "[key] empty, skip signing" }
-          npx --yes @tauri-apps/cli build --config src-tauri/src/app/tauri.conf.json --target x86_64-pc-windows-msvc
+        run: npx --yes @tauri-apps/cli build --config src-tauri/src/app/tauri.conf.json --target x86_64-pc-windows-msvc
 
       - name: Collect artifact
         shell: pwsh
