@@ -29,6 +29,16 @@ Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'tauri.conf.json')) 
 New-Item -ItemType Directory -Force -Path $iconDir | Out-Null
 Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'icon.ico')) ([System.IO.Path]::Combine($iconDir, 'icon.ico')) -Force
 Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'icon.png')) ([System.IO.Path]::Combine($iconDir, 'icon.png')) -Force
+  # WEDAO_ICON_FIX2：tauri.conf 位于 src/app/，图标也要放到 src/app/icons/
+  $icoDir2 = [System.IO.Path]::Combine($appDir, 'src', 'app', 'icons')
+  New-Item -ItemType Directory -Force -Path $icoDir2 | Out-Null
+  $wi = [System.IO.Path]::Combine($Branding, 'branding', 'icons', 'wedao.ico')
+  $wpng = [System.IO.Path]::Combine($Branding, 'branding', 'icons', 'wedao.png')
+  if (Test-Path $wi) { Copy-Item $wi ([System.IO.Path]::Combine($icoDir2, 'wedao.ico')) -Force; Write-Host '[ok] wedao.ico -> src/app/icons' }
+  if (Test-Path $wpng) { Copy-Item $wpng ([System.IO.Path]::Combine($icoDir2, 'wedao.png')) -Force }
+  $s2 = [System.IO.Path]::Combine($Upstream, 'dsh-tauri', 'src-tauri', 'icons')
+  New-Item -ItemType Directory -Force -Path $s2 | Out-Null
+  if (Test-Path $wi) { Copy-Item $wi ([System.IO.Path]::Combine($s2, 'wedao.ico')) -Force; Write-Host '[ok] wedao.ico -> src-tauri/icons' }
 Write-Host '[ok] tauri.conf.json + icons'
 
 # 1.5) 安装器钩子（注册开机静默更新）
