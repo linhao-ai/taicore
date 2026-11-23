@@ -628,3 +628,50 @@ window.__ModuleLoader__.load({
   else inject();
   setInterval(inject, 2000);
 })();
+/* TAICORE_UPDATE_CHECK：通过本地服务代查新版本，提示下载（不依赖 Tauri 签名） */
+(function () {
+  try {
+    if (typeof window === 'undefined' || window.__tcUpdateCheck) return;
+    window.__tcUpdateCheck = true;
+    var KEY = 'wedao_seen_version';
+    var CHECK_URL = 'http://127.0.0.1:8799/update/check';
+
+    function show(latest) {
+      if (document.getElementById('wedao-update-toast')) return;
+      var d = document.createElement('div');
+      d.id = 'wedao-update-toast';
+      d.style.cssText = 'position:fixed;right:18px;bottom:18px;z-index:2147483000;max-width:300px;' +
+        'background:linear-gradient(165deg,rgba(18,28,46,.97),rgba(10,16,28,.98));color:#e9f1ff;' +
+        'border:1px solid rgba(34,211,238,.35);border-radius:14px;padding:14px 16px;font-size:13px;' +
+        'box-shadow:0 16px 40px rgba(0,0,0,.55);font-family:"Microsoft YaHei",system-ui';
+      d.innerHTML = '<div style="font-weight:800;margin-bottom:6px">发现新版本 ' + latest.version + '</div>' +
+        '<div style="color:#8ba0bf;font-size:12px;margin-bottom:10px;line-height:1.6">' +
+        String(latest.notes || '').slice(0, 60) + '</div>' +
+        '<a href="' + latest.url + '" target="_blank" style="display:inline-block;padding:8px 16px;border-radius:9px;' +
+        'background:linear-gradient(135deg,#22d3ee,#6366f1);color:#04121a;font-weight:800;text-decoration:none">立即下载</a>' +
+        '<button id="wedao-update-later" style="margin-left:8px;background:transparent;border:1px solid rgba(120,200,255,.25);' +
+        'color:#bff3ff;border-radius:9px;padding:8px 12px;cursor:pointer">稍后</button>';
+      document.body.appendChild(d);
+      document.getElementById('wedao-update-later').onclick = function () {
+        try { localStorage.setItem(KEY, latest.version); } catch (e) {}
+        d.remove();
+      };
+    }
+
+    function check() {
+      fetch(CHECK_URL, { cache: 'no-store' })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (!j || !j.ok || !j.latest || !j.latest.version) return;
+          var latest = j.latest;
+          var seen = '';
+          try { seen = localStorage.getItem(KEY) || ''; } catch (e) {}
+          if (!seen) { try { localStorage.setItem(KEY, latest.version); } catch (e) {} return; }
+          if (seen !== latest.version) show(latest);
+        })
+        .catch(function () {});
+    }
+
+    setTimeout(check, 4000);
+  } catch (e) {}
+})();

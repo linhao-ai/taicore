@@ -189,3 +189,17 @@ $pocketScript = Join-Path $PSScriptRoot 'patch-pocket.ps1'
 if (Test-Path $pocketScript) {
   try { & $pocketScript -Upstream $Upstream } catch { Write-Host "[pocket] failed: $_" }
 }
+
+
+# WEDAO_OFFPEAK_OFF：安装包默认关闭错峰拦截插件（避免高峰弹窗打断）
+$offpeakDir = Join-Path $Upstream 'dsh-desktop/assets/plugins/dsh-offpeak'
+if (Test-Path $offpeakDir) {
+  Rename-Item -LiteralPath $offpeakDir -NewName 'dsh-offpeak.disabled' -Force -ErrorAction SilentlyContinue
+  Write-Host '[ok] dsh-offpeak disabled'
+  $regOff = Join-Path $Upstream 'dsh-desktop/scripts/lib/companion-plugins.js'
+  if (Test-Path $regOff) {
+    $tOff = [System.IO.File]::ReadAllText($regOff)
+    $tOff = $tOff -replace "(?m)^\s*\{ id: 'dsh-offpeak'.*\r?\n?", ''
+    [System.IO.File]::WriteAllText($regOff, $tOff, (New-Object System.Text.UTF8Encoding($false)))
+  }
+}

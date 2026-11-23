@@ -9,6 +9,7 @@ import os from 'node:os';
 
 const PORT = Number(process.env.SM_PORT || 8799);
 const IDLE_MS = Number(process.env.SM_IDLE_MIN || 10) * 60 * 1000;
+const PERSIST_SERVICES = new Set(['account']); // 常驻：账号服务不自动回收（手机端依赖）
 const ROOT = process.env.SM_ROOT || 'D:\\Users\\YC\\Documents\\deepseek-harness\\default-workspace\\seed';
 
 const NODE = process.execPath;
@@ -72,7 +73,7 @@ setInterval(async () => {
   const now = Date.now();
   for (const name of Object.keys(state)) {
     const st = state[name];
-    if (st.autoStarted && st.lastUsed && now - st.lastUsed > IDLE_MS) {
+    if (!PERSIST_SERVICES.has(name) && st.autoStarted && st.lastUsed && now - st.lastUsed > IDLE_MS) {
       const open = await isOpen(SERVICES[name].port);
       if (open) { stop(name); console.log('[idle stop]', name); }
     }
