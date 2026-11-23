@@ -28,8 +28,10 @@ const key = `assets/app/WeDAO-Setup-${version}.exe`; // 公开读目录（与 la
 const base = { bucket: 'taicore-1453181681', region: 'ap-guangzhou', secretId, secretKey };
 
 console.log(`uploading ${path.basename(file)} ${(sizes / 1048576).toFixed(1)}MB -> ${key}`);
-await putFileWithCurl({ ...base, key, file, contentType: 'application/octet-stream', cacheControl: 'no-cache' });
-console.log('installer url: https://dl.wedao.org.cn/' + key);
+const __skip = process.env.SKIP_INSTALLER === '1';
+if (!__skip) await putFileWithCurl({ ...base, key, file, contentType: 'application/octet-stream', cacheControl: 'no-cache' });
+const externalUrl = process.env.INSTALLER_URL || '';
+console.log('installer url: ' + (externalUrl || ('https://dl.wedao.org.cn/' + key)));
 console.log('public check: https://dl.wedao.org.cn/' + key);
 console.log('sha256:', sha);
 
@@ -47,7 +49,7 @@ const latest = {
   schema: 1,
   signature,
   version,
-  url: 'https://dl.wedao.org.cn/' + key,
+  url: externalUrl || ('https://dl.wedao.org.cn/' + key),
   sha256: sha,
   size: sizes,
   notes,
