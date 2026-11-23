@@ -222,7 +222,21 @@ jobs:
           Write-Host "uploading parts for $ver"
           node branding-repo/scripts/upload-parts.mjs --file out/TAICORE-Setup.exe --version $ver --part-mb 8
 
-      - name: Publish to COS (installer + latest.json)
+      - name: Publish installer to GitHub Release # WEDAO_RELEASE_UPLOAD
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $conf = "upstream/dsh-tauri/src/app/tauri.conf.json"
+          $ver = (Get-Content $conf -Raw | ConvertFrom-Json).version
+          $tag = "v$ver"
+          Write-Host "[release] tag=$tag"
+          gh release view $tag 2>$null | Out-Null
+          if ($LASTEXITCODE -ne 0) { gh release create $tag --title "WeDAO $ver" --notes "auto build $ver" }
+          gh release upload $tag out/TAICORE-Setup.exe --clobber
+          Write-Host "[release] uploaded"
+
+- name: Publish to COS (installer + latest.json)
         if: ${{ inputs.cos_secret_id != '' && inputs.cos_secret_key != '' }}
         shell: pwsh
         env:
@@ -231,4 +245,7 @@ jobs:
         run: |
           $ver = (Get-Content 'branding-repo/branding/tauri.conf.json' -Raw | ConvertFrom-Json).version
           Write-Host "publishing version $ver"
-          node branding-repo/scripts/upload-installer.mjs --file out/TAICORE-Setup.exe --version $ver --notes "${{ inputs.publish_notes }}"
+          $repoUrl = "https://github.com/${{ github.repository }}/releases/download/v$ver/TAICORE-Setup.exe"
+                    $env:SKIP_INSTALLER = '1'
+                    $env:INSTALLER_URL = $repoUrl
+                    node branding-repo/scripts/upload-installer.mjs --file out/TAICORE-Setup.exe --version $ver --notes "${{ inputs.publish_notes }}"
