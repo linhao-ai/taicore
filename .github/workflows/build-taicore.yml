@@ -209,7 +209,8 @@ jobs:
           name: TAICORE-windows
           path: out/*
 
-      - name: Publish parts to COS (avoids GitHub artifact quota)
+      - name: Publish parts to COS (avoids GitHub artifact quota) # WEDAO_PARTS_SOFTFAIL
+        continue-on-error: true
         if: ${{ inputs.cos_secret_id != '' && inputs.cos_secret_key != '' }}
         shell: pwsh
         env:
@@ -218,7 +219,7 @@ jobs:
         run: |
           $ver = (Get-Content 'branding-repo/branding/tauri.conf.json' -Raw | ConvertFrom-Json).version
           Write-Host "uploading parts for $ver"
-          node branding-repo/scripts/upload-parts.mjs --file out/TAICORE-Setup.exe --version $ver --part-mb 20
+          node branding-repo/scripts/upload-parts.mjs --file out/TAICORE-Setup.exe --version $ver --part-mb 8
 
       - name: Publish to COS (installer + latest.json)
         if: ${{ inputs.cos_secret_id != '' && inputs.cos_secret_key != '' }}
