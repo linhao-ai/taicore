@@ -183,3 +183,9 @@ if (Test-Path $svcSrc) {
     }
   }
 }
+
+# 品牌化 dsh-pocket 代理（标题/图标/PWA 清单）
+$pocketScript = Join-Path $PSScriptRoot 'patch-pocket.ps1'
+if (Test-Path $pocketScript) {
+  try { & $pocketScript -Upstream $Upstream } catch { Write-Host "[pocket] failed: $_" }
+}
