@@ -203,3 +203,15 @@ if (Test-Path $offpeakDir) {
     [System.IO.File]::WriteAllText($regOff, $tOff, (New-Object System.Text.UTF8Encoding($false)))
   }
 }
+
+
+# WEDAO_NO_LICENSE：发行版不再使用授权码（改为账号登录）
+$regNoLic = Join-Path $Upstream 'dsh-desktop/scripts/lib/companion-plugins.js'
+if (Test-Path $regNoLic) {
+  $tNoLic = [System.IO.File]::ReadAllText($regNoLic)
+  $tNoLic = $tNoLic -replace "(?m)^\s*\{ id: 'taicore-license'.*\r?\n?", ''
+  [System.IO.File]::WriteAllText($regNoLic, $tNoLic, (New-Object System.Text.UTF8Encoding($false)))
+  Write-Host '[ok] taicore-license removed from companion list'
+}
+$licDir = Join-Path $Upstream 'dsh-desktop/assets/plugins/taicore-license'
+if (Test-Path $licDir) { Remove-Item $licDir -Recurse -Force -ErrorAction SilentlyContinue; Write-Host '[ok] taicore-license removed' }

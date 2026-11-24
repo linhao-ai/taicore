@@ -238,11 +238,11 @@ window.__ModuleLoader__.load({
           const t = el.textContent || "";
           return t.length < 400 && /MISSING_CREDENTIAL|no API key/i.test(t);
         });
-        if (credEls.length && !document.getElementById("taicore-cred-once")) {
+        if (credEls.length) {
           const el = credEls[0];
           el.dataset.tcCred = "1";
           const tip = document.createElement("div");
-          tip.className = "taicore-cred-tip"; tip.id = "taicore-cred-once";
+          tip.className = "taicore-cred-tip";
           tip.style.cssText = "margin:10px 0;padding:11px 13px;border-radius:10px;border:1px solid rgba(0,224,255,.3);background:rgba(0,224,255,.08);color:#BFEFFF;font-size:12.5px;line-height:1.75";
           tip.innerHTML = "💡 <b>还没有配置模型</b>：为道使用你自己的模型账号，不上传任何数据。<br>点右上角「设置 → 模型」，或下方「请选择模型」，填入 DeepSeek / 通义 / 豆包等 API Key 即可开始使用。";
           el.insertAdjacentElement("afterend", tip);
@@ -332,457 +332,53 @@ window.__ModuleLoader__.load({
   },
 });
 
-
-
-
-
-
-
-
-/* WEDAO_WORKBENCH：侧边栏「AI 工作台」入口 + 功能面板 */
+/* TAICORE_LOGIN_GATE：发行版启动先登录（手机号+验证码），替代授权码
+   仅在 WeDAO 安装版生效（通过 service-manager /whoami 判断，cwd 含 WeDAO） */
 (function () {
   try {
-    if (typeof document === 'undefined') return;
-    var FEATURES = [
-      { name: 'AI 一键出图', url: '/proposal.html', desc: '上传商品图 → 主图 + 详情页' },
-      { name: '主图设计器', url: '/designer.html', desc: '拖拽排版 · 描边 · 导出 PNG' },
-      { name: 'AI 员工团队', url: 'http://127.0.0.1:8796/', desc: '圆桌会议 · 单聊 · 团队任务流水线' },
-      { name: '视频工坊', url: 'http://127.0.0.1:8790/', desc: 'AI 配图 + 文案 + 配音 + 自动成片' },
-      { name: '获客助手', url: 'http://127.0.0.1:8792/', desc: '评论意向 · 回复草稿 · 线索' },
-      { name: '获客设置', url: 'http://127.0.0.1:8792/profile', desc: '行业 · 门店 · 产品档案' },
-      { name: '客服助手', url: 'http://127.0.0.1:8792/profile', desc: '话术库 · 售后处理（配置中）' },
-      { name: '用量中心', url: '', desc: '即将上线' }
-    ];
-    var BASE = 'http://127.0.0.1:8793';
+    if (typeof window === 'undefined' || window.__wedaoGateV2) return;
+    window.__wedaoGateV2 = true;
+    var KEY = 'wedao_token';
+    var ACC = 'http://127.0.0.1:8800';
 
-    function close() { var p = document.getElementById('wedao-wb'); if (p) p.remove(); }
-    function openPage(url) {
-      var f = document.getElementById('wedao-wb-frame');
-      if (f) f.src = /^https?:/.test(url) ? url : (BASE + url);
-      var t = document.getElementById('wedao-wb-title');
-      if (t) t.textContent = (FEATURES.find(function (x) { return x.url === url; }) || {}).name || '';
-    }
-    function openPanel() {
-      if (document.getElementById('wedao-wb')) return;
-      var box = document.createElement('div');
-      box.id = 'wedao-wb';
-      box.style.cssText = 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:92vw;height:88vh;z-index:2147483600;background:#0b1220;display:flex;flex-direction:column;border-radius:14px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.6);border:1px solid #1c2740';
-      var bar = document.createElement('div');
-      bar.style.cssText = 'height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:#0f1523;border-bottom:1px solid #1c2740;color:#dff6ff;font:700 13px "Microsoft YaHei",sans-serif;cursor:move';
-      bar.innerHTML = '<span>✦ AI 工作台 · <span id="wedao-wb-title"></span></span><span><button id="wedao-wb-new" style="margin-right:8px;background:#1c2740;color:#cfe0ff;border:0;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px">浏览器打开</button><button id="wedao-wb-x" style="background:#ef4444;color:#fff;border:0;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px">关闭</button></span>';
-      var bodyEl = document.createElement('div');
-      bodyEl.style.cssText = 'flex:1;display:flex;overflow:hidden';
-      var side = document.createElement('div');
-      side.style.cssText = 'width:190px;background:#0d1522;border-right:1px solid #1c2740;padding:10px;overflow:auto';
-      FEATURES.forEach(function (ft) {
-        var it = document.createElement('div');
-        it.textContent = ft.name;
-        it.title = ft.desc;
-        it.style.cssText = 'padding:9px 10px;border-radius:8px;color:' + (ft.url ? '#dff6ff' : '#5c6b85') + ';font:600 13px "Microsoft YaHei",sans-serif;cursor:' + (ft.url ? 'pointer' : 'default') + ';margin-bottom:4px';
-        if (ft.url) {
-          it.onmouseenter = function () { it.style.background = 'rgba(34,211,238,.14)'; };
-          it.onmouseleave = function () { it.style.background = 'transparent'; };
-          it.onclick = function () { openPage(ft.url); };
-        }
-        side.appendChild(it);
-      });
-      var fr = document.createElement('iframe');
-      fr.id = 'wedao-wb-frame';
-      fr.src = BASE + FEATURES[0].url;
-      fr.style.cssText = 'flex:1;border:0;background:#fff';
-      bodyEl.appendChild(side); bodyEl.appendChild(fr);
-      box.appendChild(bar); box.appendChild(bodyEl);
-      document.body.appendChild(box);
-      document.getElementById('wedao-wb-x').onclick = close;
-      document.getElementById('wedao-wb-new').onclick = function () {
-        var x = new XMLHttpRequest(); x.open('GET', BASE + '/open', true); x.send();
-      };
-      document.getElementById('wedao-wb-title').textContent = FEATURES[0].name;
-    }
+    function token() { try { return localStorage.getItem(KEY) || ''; } catch (e) { return ''; } }
 
-    // 捕获点击（绕过前端拦截）
-    document.addEventListener('pointerdown', function (e) {
-      var t = e.target;
-      if (t && t.closest && t.closest('#wedao-wb-nav')) {
-        e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); openPanel();
-      }
-    }, true);
-
-    function findText(txt) {
-      var all = document.querySelectorAll('button,a,div,li,span');
-      for (var i = 0; i < all.length; i++) {
-        var el = all[i];
-        if (el.children.length === 0 && (el.textContent || '').trim() === txt) return el;
-      }
-      return null;
-    }
-    function addNav() {
-      if (document.getElementById('wedao-wb-nav')) return;
-      var anchor = findText('工具箱');
-      if (!anchor) return;
-      var row = anchor.closest('button,a,li') || anchor.parentElement;
-      if (!row || !row.parentElement) return;
-      var clone = row.cloneNode(true);
-      clone.id = 'wedao-wb-nav';
-      var texts = clone.querySelectorAll('span,div,p');
-      var done = false;
-      for (var k = 0; k < texts.length; k++) {
-        if (texts[k].children.length === 0 && texts[k].textContent.trim()) { texts[k].textContent = 'AI 工作台'; done = true; break; }
-      }
-      if (!done) clone.textContent = 'AI 工作台';
-      clone.style.cursor = 'pointer';
-      row.parentElement.insertBefore(clone, row);
-    }
-    addNav();
-    setInterval(addNav, 800);
-  } catch (e) {}
-})();
-
-/* WEDAO_HIDE_DEV：客户版隐藏开发者入口，Ctrl+Shift+Alt+D 切换显示 */
-(function () {
-  try {
-    if (typeof document === 'undefined') return;
-    var HIDE_TEXTS = ['Remote', '工具箱', '连接插件'];
-    var HIDDEN = true;
-    var style = document.createElement('style');
-    style.id = 'wedao-hide-dev-style';
-    style.textContent = '.wedao-dev-hidden{display:none !important}';
-    document.head.appendChild(style);
-
-    function findRow(txt) {
-      var all = document.querySelectorAll('button,a,div,li,span');
-      for (var i = 0; i < all.length; i++) {
-        var el = all[i];
-        if (el.children.length === 0 && (el.textContent || '').trim().indexOf(txt) === 0) {
-          return el.closest('button,a,li') || el.parentElement;
-        }
-      }
-      return null;
-    }
-    function apply() {
-      HIDE_TEXTS.forEach(function (t) {
-        var row = findRow(t);
-        if (!row) return;
-        if (HIDDEN) row.classList.add('wedao-dev-hidden');
-        else row.classList.remove('wedao-dev-hidden');
-      });
-    }
-    function start() {
-      apply();
-      setInterval(apply, 1200);
-      document.addEventListener('keydown', function (e) {
-        if (e.ctrlKey && e.shiftKey && e.altKey && (e.key === 'D' || e.key === 'd')) {
-          HIDDEN = !HIDDEN;
-          apply();
-        }
-      }, true);
-    }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
-    else start();
-  } catch (e) {}
-})();
-
-/* WEDAO_HIDE_DEV_V2：隐藏连接插件 + 右下角九宫格 */
-(function () {
-  try {
-    if (typeof document === 'undefined') return;
-    function hideByText(txt) {
-      var all = document.querySelectorAll('button,a,div,li,span');
-      for (var i = 0; i < all.length; i++) {
-        var el = all[i];
-        if (el.children.length === 0 && (el.textContent || '').indexOf(txt) >= 0) {
-          var row = el.closest('button,a,li') || el.parentElement;
-          if (row) row.classList.add('wedao-dev-hidden');
-        }
-      }
-    }
-    function hideGrid() {
-      var nodes = document.querySelectorAll('button,div,a');
-      for (var i = 0; i < nodes.length; i++) {
-        var el = nodes[i];
-        if (el.id === 'wedao-wb-nav' || (el.closest && el.closest('#wedao-wb'))) continue;
-        var cs = getComputedStyle(el);
-        if (cs.position !== 'fixed') continue;
-        var r = el.getBoundingClientRect();
-        if (r.width < 20 || r.width > 80) continue;
-        if (r.height < 20 || r.height > 80) continue;
-        if (window.innerWidth - r.right > 40) continue;
-        if (window.innerHeight - r.bottom > 40) continue;
-        el.classList.add('wedao-dev-hidden');
-      }
-    }
-    function apply() { hideByText('连接插件'); hideGrid(); }
-    apply();
-    setInterval(apply, 1200);
-  } catch (e) {}
-})();
-
-/* WEDAO_HIDE_DEV_V3：按宽度向上查找整行再隐藏 */
-(function () {
-  try {
-    if (typeof document === 'undefined') return;
-    function hideRow(txt) {
-      var all = document.querySelectorAll('button,a,div,li,span');
-      for (var i = 0; i < all.length; i++) {
-        var el = all[i];
-        if (el.children.length > 0) continue;
-        if ((el.textContent || '').indexOf(txt) < 0) continue;
-        var node = el;
-        for (var up = 0; up < 6 && node && node !== document.body; up++) {
-          var r = node.getBoundingClientRect();
-          if (r.width > 120) { node.classList.add('wedao-dev-hidden'); break; }
-          node = node.parentElement;
-        }
-      }
-    }
-    function apply() { hideRow('连接插件'); }
-    apply();
-    setInterval(apply, 1000);
-  } catch (e) {}
-})();
-
-
-/* WEDAO_MASK_FIX：只遮「连接插件」单行，严禁盖到大块区域 */
-(function () {
-  try {
-    if (typeof document === 'undefined') return;
-    function findLeaf(txt) {
-      var all = document.querySelectorAll('span,div,p,button,a,li');
-      for (var i = 0; i < all.length; i++) {
-        var el = all[i];
-        if (el.children.length > 0) continue;
-        if ((el.textContent || '').trim().indexOf(txt) === 0) return el;
-      }
-      return null;
-    }
-    function apply() {
-      var leaf = findLeaf('连接插件');
-      var m = document.getElementById('mask-conn');
-      if (!leaf) { if (m) m.remove(); return; }
-      var node = leaf;
-      var rect = null;
-      for (var up = 0; up < 6 && node && node !== document.body; up++) {
-        var r = node.getBoundingClientRect();
-        if (r.height > 60) break;              // 太高就不是单行，停止
-        if (r.width > 120 && r.height <= 56) { rect = r; break; }
-        node = node.parentElement;
-      }
-      if (!rect || rect.width > 340) { if (m) m.remove(); return; }
-      if (!m) { m = document.createElement('div'); m.id = 'mask-conn'; document.body.appendChild(m); }
-      m.style.cssText = 'position:fixed;z-index:2147482000;left:' + rect.left + 'px;top:' + rect.top + 'px;width:' + rect.width + 'px;height:' + rect.height + 'px;background:#0b1220;pointer-events:none';
-    }
-    apply();
-    setInterval(apply, 600);
-  } catch (e) {}
-})();
-
-/* WEDAO_FAVICON：为道品牌图标与标题 */
-(function () {
-  try {
-    if (typeof document === 'undefined') return;
-    var ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMyMmQzZWUiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM2MzY2ZjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjI4IiBmaWxsPSIjMGIxMjIwIi8+PHJlY3QgeD0iNiIgeT0iNiIgd2lkdGg9IjExNiIgaGVpZ2h0PSIxMTYiIHJ4PSIyNCIgZmlsbD0idXJsKCNnKSIgb3BhY2l0eT0iMC4xOCIvPjx0ZXh0IHg9IjY0IiB5PSI4NiIgZm9udC1zaXplPSI2NCIgZm9udC1mYW1pbHk9Ik1pY3Jvc29mdCBZYUhlaSwgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0idXJsKCNnKSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5Li6PC90ZXh0Pjwvc3ZnPg==';
-    function apply() {
-      try {
-        document.title = '为道 WeDAO';
-        var links = document.querySelectorAll('link[rel*="icon"]');
-        for (var i = 0; i < links.length; i++) links[i].remove();
-        var l = document.createElement('link');
-        l.rel = 'icon'; l.type = 'image/svg+xml'; l.href = ICON;
-        document.head.appendChild(l);
-        var a = document.createElement('link');
-        a.rel = 'apple-touch-icon'; a.href = ICON;
-        document.head.appendChild(a);
-        var m = document.createElement('meta');
-        m.name = 'apple-mobile-web-app-title'; m.content = '为道';
-        document.head.appendChild(m);
-      } catch (e) {}
-    }
-    apply();
-    setInterval(apply, 2000);
-  } catch (e) {}
-})();
-
-/* WEDAO_GLOBAL_TECH */
-(function(){
-  if (typeof document === 'undefined') return;
-  function inject(){
-    if (document.getElementById('wedao-tech-style')) return;
-    var st = document.createElement('style');
-    st.id = 'wedao-tech-style';
-    st.textContent = `
-      body{background:radial-gradient(1200px 700px at 50% -12%,rgba(34,211,238,.10),transparent 60%),radial-gradient(900px 600px at 85% 20%,rgba(99,102,241,.08),transparent 62%),#05070d !important;}
-      [class*="sidebar"],[class*="Sidebar"]{background:linear-gradient(180deg,rgba(12,20,34,.92),rgba(8,12,22,.96)) !important;border-right:1px solid rgba(120,200,255,.10) !important;backdrop-filter:blur(14px)}
-      [class*="sidebar"] [class*="item"]:hover{background:rgba(34,211,238,.08) !important}
-      [class*="composer"],[class*="Composer"],[class*="input"]{border-color:rgba(120,200,255,.16) !important}
-      ::selection{background:rgba(34,211,238,.28)}
-      .wedao-tech-glow{position:fixed;inset:0;pointer-events:none;z-index:0;
-        background:radial-gradient(700px 400px at 50% 0%,rgba(34,211,238,.10),transparent 70%)}
-    `;
-    document.head.appendChild(st);
-    if (!document.querySelector('.wedao-tech-glow')) {
-      var d = document.createElement('div'); d.className = 'wedao-tech-glow';
-      document.body.appendChild(d);
-    }
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', inject);
-  else inject();
-  setInterval(inject, 2000);
-})();
-/* TAICORE_UPDATE_CHECK：通过本地服务代查新版本，提示下载（不依赖 Tauri 签名） */
-(function () {
-  try {
-    if (typeof window === 'undefined' || window.__tcUpdateCheck) return;
-    window.__tcUpdateCheck = true;
-    var KEY = 'wedao_seen_version';
-    var CHECK_URL = 'http://127.0.0.1:8799/update/check';
-
-    function show(latest) {
-      if (document.getElementById('wedao-update-toast')) return;
+    function overlay() {
+      if (document.getElementById('wedao-login-layer')) return;
       var d = document.createElement('div');
-      d.id = 'wedao-update-toast';
-      d.style.cssText = 'position:fixed;right:18px;bottom:18px;z-index:2147483000;max-width:300px;' +
-        'background:linear-gradient(165deg,rgba(18,28,46,.97),rgba(10,16,28,.98));color:#e9f1ff;' +
-        'border:1px solid rgba(34,211,238,.35);border-radius:14px;padding:14px 16px;font-size:13px;' +
-        'box-shadow:0 16px 40px rgba(0,0,0,.55);font-family:"Microsoft YaHei",system-ui';
-      d.innerHTML = '<div style="font-weight:800;margin-bottom:6px">发现新版本 ' + latest.version + '</div>' +
-        '<div style="color:#8ba0bf;font-size:12px;margin-bottom:10px;line-height:1.6">' +
-        String(latest.notes || '').slice(0, 60) + '</div>' +
-        '<a href="' + latest.url + '" target="_blank" style="display:inline-block;padding:8px 16px;border-radius:9px;' +
-        'background:linear-gradient(135deg,#22d3ee,#6366f1);color:#04121a;font-weight:800;text-decoration:none">立即下载</a>' +
-        '<button id="wedao-update-later" style="margin-left:8px;background:transparent;border:1px solid rgba(120,200,255,.25);' +
-        'color:#bff3ff;border-radius:9px;padding:8px 12px;cursor:pointer">稍后</button>';
+      d.id = 'wedao-login-layer';
+      d.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:#05070d;display:flex;align-items:center;justify-content:center';
+      var f = document.createElement('iframe');
+      f.src = ACC + '/';
+      f.style.cssText = 'width:100%;height:100%;border:0;background:#05070d';
+      d.appendChild(f);
       document.body.appendChild(d);
-      document.getElementById('wedao-update-later').onclick = function () {
-        try { localStorage.setItem(KEY, latest.version); } catch (e) {}
-        d.remove();
-      };
+      window.addEventListener('message', function (e) {
+        var m = e.data || {};
+        if (m.type === 'wedao-login' && m.token) {
+          try { localStorage.setItem(KEY, m.token); } catch (err) {}
+          d.remove();
+        }
+      });
     }
 
-    function check() {
-      fetch(CHECK_URL, { cache: 'no-store' })
-        .then(function (r) { return r.json(); })
-        .then(function (j) {
-          if (!j || !j.ok || !j.latest || !j.latest.version) return;
-          var latest = j.latest;
-          var seen = '';
-          try { seen = localStorage.getItem(KEY) || ''; } catch (e) {}
-          if (!seen) { try { localStorage.setItem(KEY, latest.version); } catch (e) {} return; }
-          if (seen !== latest.version) show(latest);
-        })
-        .catch(function () {});
-    }
-
-    setTimeout(check, 4000);
-  } catch (e) {}
-})();
-
-/* TAICORE_TECH_V2：强制深色 + 科技感主题（不改 DOM，只改渲染模式与配色） */
-(function () {
-  try {
-    if (typeof window === 'undefined' || window.__tcTechV1) return;
-    window.__tcTechV1 = true;
-
-    /* ① 强制深色：拦截 prefers-color-scheme，让应用按深色调色板渲染 */
-    try {
-      var native = window.matchMedia ? window.matchMedia.bind(window) : null;
-      if (native) {
-        var fake = function (q) {
-          var mql = null;
-          try { mql = native(q); } catch (e) {}
-          return {
-            media: q, matches: true, onchange: null,
-            addEventListener: function (t, fn) { if (mql && mql.addEventListener) mql.addEventListener(t, fn); },
-            removeEventListener: function (t, fn) { if (mql && mql.removeEventListener) mql.removeEventListener(t, fn); },
-            addListener: function (fn) { if (mql && mql.addListener) mql.addListener(fn); },
-            removeListener: function (fn) { if (mql && mql.removeListener) mql.removeListener(fn); },
-            dispatchEvent: function () { return true; },
-          };
-        };
-        window.matchMedia = function (q) {
-          var s = String(q || '');
-          if (/prefers-color-scheme\s*:\s*dark/i.test(s)) return fake(s);
-          if (/prefers-color-scheme\s*:\s*light/i.test(s)) return fake(s.replace(/light/i, 'dark'));
-          return native(q);
-        };
-      }
-    } catch (e) {}
-
-    /* ② 科技感配色（只改颜色/背景/圆角阴影，不动布局与控件尺寸） */
-    var CSS = [
-      ':root{--tc-cyan:#22d3ee;--tc-gold:#f3c04a;--tc-line:rgba(120,200,255,.10);--tc-card:rgba(13,21,36,.72)}',
-      'html{color-scheme:dark !important}',
-      'body{background:radial-gradient(1200px 700px at 18% -10%,rgba(34,211,238,.10),transparent 60%),radial-gradient(900px 600px at 90% 0%,rgba(99,102,241,.10),transparent 55%),linear-gradient(180deg,#05070d,#070b14 60%,#05070d) !important}',
-      '[class*="topbar"],[class*="titlebar"],[class*="toolbar"]{background:rgba(6,10,18,.72) !important;border-bottom:1px solid var(--tc-line) !important;backdrop-filter:blur(10px)}',
-      '[class*="sidebar"],[class*="Sidebar"]{background:linear-gradient(180deg,rgba(10,18,32,.86),rgba(6,10,18,.92)) !important;border-right:1px solid var(--tc-line) !important;backdrop-filter:blur(12px)}',
-      '[class*="card"],[class*="Card"],[class*="panel"],[class*="Panel"]{background:var(--tc-card) !important;border:1px solid var(--tc-line) !important;box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.03) !important}',
-      '[class*="sidebar"] a:hover,[class*="sidebar"] button:hover{background:rgba(34,211,238,.08) !important}',
-      '::selection{background:rgba(34,211,238,.25)}',
-      '*::-webkit-scrollbar{width:8px;height:8px}',
-      '*::-webkit-scrollbar-thumb{background:rgba(120,200,255,.18);border-radius:8px}',
-      '*::-webkit-scrollbar-thumb:hover{background:rgba(34,211,238,.35)}',
-      '*::-webkit-scrollbar-track{background:transparent}',
-      'body::before{content:"";position:fixed;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(34,211,238,.55),rgba(243,192,74,.35),transparent);z-index:9999;pointer-events:none}',
-    ].join('\n');
-
-    function applyCss() {
-      if (document.getElementById('tc-tech-v1')) return;
-      var st = document.createElement('style');
-      st.id = 'tc-tech-v1';
-      st.textContent = CSS;
-      (document.head || document.documentElement).appendChild(st);
-    }
-    applyCss();
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyCss);
-  } catch (e) {}
-})();
-
-/* TAICORE_MOBILE_FRESH：手机端独立启动（不继承桌面“上次会话”，避免连到已释放会话导致回退） */
-(function () {
-  try {
-    if (typeof window === 'undefined' || window.__tcMobileFresh) return;
-    var ua = String(navigator.userAgent || '');
-    if (!/Android|iPhone|iPad|iPod|Mobile|HarmonyOS/i.test(ua)) return;  // 仅手机
-    window.__tcMobileFresh = true;
-
-    // 每次页面加载清掉“上次会话”指针，让手机从工作区选择开始（独立于电脑）
-    try {
-      var KEY = 'dsh.sessions.current';
-      if (localStorage.getItem(KEY) !== null) localStorage.removeItem(KEY);
-    } catch (e) {}
-
-    // 若仍进入“选择工作区”，自动打开侧栏并选中第一个会话（尽力而为）
-    var tries = 0;
-    function nudge() {
-      tries++;
-      var body = document.body ? document.body.innerText : '';
-      if (!/Choose a workspace|选择一个工作区/i.test(body)) return;
-      var sidebarBtn = document.querySelector('button[aria-label="Open sidebar"]');
-      if (sidebarBtn) {
-        sidebarBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    async function verify() {
+      var t = token();
+      if (!t) { overlay(); return; }
+      try {
+        var r = await fetch(ACC + '/api/auth/me', { headers: { Authorization: 'Bearer ' + t } });
+        var j = await r.json();
+        if (!j.ok) { try { localStorage.removeItem(KEY); } catch (e) {} overlay(); }
+      } catch (e) {
+        // 账号服务未起：先放行，避免打不开
       }
     }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', nudge); else nudge();
-    var iv = setInterval(function () { nudge(); if (tries > 12) clearInterval(iv); }, 1200);
-  } catch (e) {}
-})();
 
-
-/* TAICORE_LICENSE_ALWAYS：我们的发行版默认已授权（避免显示"未授权"） */
-(function () {
-  try {
-    if (typeof document === 'undefined') return;
-    function fix() {
-      var btn = document.getElementById('tc-license-btn');
-      if (!btn) return;
-      var sp = btn.querySelector('span');
-      if (sp && sp.textContent.trim() !== '已授权') {
-        sp.textContent = '已授权';
-        btn.style.background = 'rgba(34,211,238,.14)';
-        btn.style.color = '#8ff0ff';
-        btn.style.border = '1px solid rgba(34,211,238,.4)';
-      }
-    }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fix); else fix();
-    setInterval(fix, 1200);
+    fetch('http://127.0.0.1:8799/whoami', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j && j.product === 'wedao') setTimeout(verify, 1200);
+      })
+      .catch(function () {});
   } catch (e) {}
 })();

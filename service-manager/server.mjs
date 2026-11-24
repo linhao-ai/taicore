@@ -91,6 +91,12 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(204, { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET,POST,OPTIONS', 'Access-Control-Allow-Headers': '*' });
     return res.end();
   }
+  // WHOAMI：区分发行版（cwd 含 WeDAO）与开发环境
+  if (u.pathname === '/whoami') {
+    const cwd = String(process.cwd() || '');
+    const product = /WeDAO|为道/i.test(cwd) ? 'wedao' : 'dev';
+    return send(res, 200, { ok: true, product, cwd });
+  }
   if (u.pathname === '/status') {
     const list = {};
     for (const [n, s] of Object.entries(SERVICES)) list[n] = { port: s.port, open: await isOpen(s.port) };
