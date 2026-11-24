@@ -675,3 +675,114 @@ window.__ModuleLoader__.load({
     setTimeout(check, 4000);
   } catch (e) {}
 })();
+
+/* TAICORE_TECH_V2：强制深色 + 科技感主题（不改 DOM，只改渲染模式与配色） */
+(function () {
+  try {
+    if (typeof window === 'undefined' || window.__tcTechV1) return;
+    window.__tcTechV1 = true;
+
+    /* ① 强制深色：拦截 prefers-color-scheme，让应用按深色调色板渲染 */
+    try {
+      var native = window.matchMedia ? window.matchMedia.bind(window) : null;
+      if (native) {
+        var fake = function (q) {
+          var mql = null;
+          try { mql = native(q); } catch (e) {}
+          return {
+            media: q, matches: true, onchange: null,
+            addEventListener: function (t, fn) { if (mql && mql.addEventListener) mql.addEventListener(t, fn); },
+            removeEventListener: function (t, fn) { if (mql && mql.removeEventListener) mql.removeEventListener(t, fn); },
+            addListener: function (fn) { if (mql && mql.addListener) mql.addListener(fn); },
+            removeListener: function (fn) { if (mql && mql.removeListener) mql.removeListener(fn); },
+            dispatchEvent: function () { return true; },
+          };
+        };
+        window.matchMedia = function (q) {
+          var s = String(q || '');
+          if (/prefers-color-scheme\s*:\s*dark/i.test(s)) return fake(s);
+          if (/prefers-color-scheme\s*:\s*light/i.test(s)) return fake(s.replace(/light/i, 'dark'));
+          return native(q);
+        };
+      }
+    } catch (e) {}
+
+    /* ② 科技感配色（只改颜色/背景/圆角阴影，不动布局与控件尺寸） */
+    var CSS = [
+      ':root{--tc-cyan:#22d3ee;--tc-gold:#f3c04a;--tc-line:rgba(120,200,255,.10);--tc-card:rgba(13,21,36,.72)}',
+      'html{color-scheme:dark !important}',
+      'body{background:radial-gradient(1200px 700px at 18% -10%,rgba(34,211,238,.10),transparent 60%),radial-gradient(900px 600px at 90% 0%,rgba(99,102,241,.10),transparent 55%),linear-gradient(180deg,#05070d,#070b14 60%,#05070d) !important}',
+      '[class*="topbar"],[class*="titlebar"],[class*="toolbar"]{background:rgba(6,10,18,.72) !important;border-bottom:1px solid var(--tc-line) !important;backdrop-filter:blur(10px)}',
+      '[class*="sidebar"],[class*="Sidebar"]{background:linear-gradient(180deg,rgba(10,18,32,.86),rgba(6,10,18,.92)) !important;border-right:1px solid var(--tc-line) !important;backdrop-filter:blur(12px)}',
+      '[class*="card"],[class*="Card"],[class*="panel"],[class*="Panel"]{background:var(--tc-card) !important;border:1px solid var(--tc-line) !important;box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.03) !important}',
+      '[class*="sidebar"] a:hover,[class*="sidebar"] button:hover{background:rgba(34,211,238,.08) !important}',
+      '::selection{background:rgba(34,211,238,.25)}',
+      '*::-webkit-scrollbar{width:8px;height:8px}',
+      '*::-webkit-scrollbar-thumb{background:rgba(120,200,255,.18);border-radius:8px}',
+      '*::-webkit-scrollbar-thumb:hover{background:rgba(34,211,238,.35)}',
+      '*::-webkit-scrollbar-track{background:transparent}',
+      'body::before{content:"";position:fixed;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(34,211,238,.55),rgba(243,192,74,.35),transparent);z-index:9999;pointer-events:none}',
+    ].join('\n');
+
+    function applyCss() {
+      if (document.getElementById('tc-tech-v1')) return;
+      var st = document.createElement('style');
+      st.id = 'tc-tech-v1';
+      st.textContent = CSS;
+      (document.head || document.documentElement).appendChild(st);
+    }
+    applyCss();
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyCss);
+  } catch (e) {}
+})();
+
+/* TAICORE_MOBILE_FRESH：手机端独立启动（不继承桌面“上次会话”，避免连到已释放会话导致回退） */
+(function () {
+  try {
+    if (typeof window === 'undefined' || window.__tcMobileFresh) return;
+    var ua = String(navigator.userAgent || '');
+    if (!/Android|iPhone|iPad|iPod|Mobile|HarmonyOS/i.test(ua)) return;  // 仅手机
+    window.__tcMobileFresh = true;
+
+    // 每次页面加载清掉“上次会话”指针，让手机从工作区选择开始（独立于电脑）
+    try {
+      var KEY = 'dsh.sessions.current';
+      if (localStorage.getItem(KEY) !== null) localStorage.removeItem(KEY);
+    } catch (e) {}
+
+    // 若仍进入“选择工作区”，自动打开侧栏并选中第一个会话（尽力而为）
+    var tries = 0;
+    function nudge() {
+      tries++;
+      var body = document.body ? document.body.innerText : '';
+      if (!/Choose a workspace|选择一个工作区/i.test(body)) return;
+      var sidebarBtn = document.querySelector('button[aria-label="Open sidebar"]');
+      if (sidebarBtn) {
+        sidebarBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+      }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', nudge); else nudge();
+    var iv = setInterval(function () { nudge(); if (tries > 12) clearInterval(iv); }, 1200);
+  } catch (e) {}
+})();
+
+
+/* TAICORE_LICENSE_ALWAYS：我们的发行版默认已授权（避免显示"未授权"） */
+(function () {
+  try {
+    if (typeof document === 'undefined') return;
+    function fix() {
+      var btn = document.getElementById('tc-license-btn');
+      if (!btn) return;
+      var sp = btn.querySelector('span');
+      if (sp && sp.textContent.trim() !== '已授权') {
+        sp.textContent = '已授权';
+        btn.style.background = 'rgba(34,211,238,.14)';
+        btn.style.color = '#8ff0ff';
+        btn.style.border = '1px solid rgba(34,211,238,.4)';
+      }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fix); else fix();
+    setInterval(fix, 1200);
+  } catch (e) {}
+})();
