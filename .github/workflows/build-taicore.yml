@@ -215,7 +215,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $conf = "upstream/dsh-tauri/src/app/tauri.conf.json"
+          $conf = "upstream/dsh-tauri/src-tauri/src/app/tauri.conf.json"
           $ver = (Get-Content $conf -Raw | ConvertFrom-Json).version
           $tag = "v$ver"
           $sha = (Get-FileHash out/TAICORE-Setup.exe -Algorithm SHA256).Hash.ToLower()
