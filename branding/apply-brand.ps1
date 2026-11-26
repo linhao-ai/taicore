@@ -39,6 +39,13 @@ Copy-Item ([System.IO.Path]::Combine($Branding, 'branding', 'icon.png')) ([Syste
   $s2 = [System.IO.Path]::Combine($Upstream, 'dsh-tauri', 'src-tauri', 'icons')
   New-Item -ItemType Directory -Force -Path $s2 | Out-Null
   if (Test-Path $wi) { Copy-Item $wi ([System.IO.Path]::Combine($s2, 'wedao.ico')) -Force; Write-Host '[ok] wedao.ico -> src-tauri/icons' }
+# WEDAO_ICON_OVERRIDE：把 wedao.ico 覆盖成 icon.ico（Windows 资源用的是 icon.ico）
+  $wi2 = [System.IO.Path]::Combine($Branding, 'branding', 'icons', 'wedao.ico')
+  if (Test-Path $wi2) {
+    Copy-Item $wi2 ([System.IO.Path]::Combine($icoDir2, 'icon.ico')) -Force
+    Copy-Item $wi2 ([System.IO.Path]::Combine($s2, 'icon.ico')) -Force
+    Write-Host '[ok] icon.ico overridden with wedao.ico'
+  }
 Write-Host '[ok] tauri.conf.json + icons'
 
 # 1.5) 安装器钩子（注册开机静默更新）
