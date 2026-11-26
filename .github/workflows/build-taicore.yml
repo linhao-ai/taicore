@@ -218,20 +218,30 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          $ErrorActionPreference = "Stop"
+          $repo = "${{ github.repository }}"
           $conf = "upstream/dsh-tauri/src-tauri/src/app/tauri.conf.json"
           $ver = (Get-Content $conf -Raw | ConvertFrom-Json).version
           $tag = "v$ver"
           $sha = (Get-FileHash out/TAICORE-Setup.exe -Algorithm SHA256).Hash.ToLower()
           $size = (Get-Item out/TAICORE-Setup.exe).Length
-          $url = "https://github.com/${{ github.repository }}/releases/download/$tag/TAICORE-Setup.exe"
+          $url = "https://github.com/$repo/releases/download/$tag/TAICORE-Setup.exe"
           $sig = ""
           if (Test-Path out/TAICORE-Setup.exe.sig) { $sig = (Get-Content out/TAICORE-Setup.exe.sig -Raw).Trim() }
           $latest = @{ schema = 1; version = $ver; url = $url; sha256 = $sha; size = $size; signature = $sig; notes = "${{ inputs.publish_notes }}"; mandatory = $false; publishedAt = (Get-Date).ToUniversalTime().ToString("o") } | ConvertTo-Json -Depth 5
           Set-Content -Path out/latest.json -Value $latest -Encoding utf8
-          Write-Host "[release] tag=$tag size=$size"
-          gh release view $tag 2>$null | Out-Null
-          if ($LASTEXITCODE -ne 0) { gh release create $tag --title "WeDAO $ver" --notes "auto $ver" }
-          gh release upload $tag out/TAICORE-Setup.exe out/latest.json --clobber
-          Write-Host "[release] uploaded installer + latest.json"
-          Write-Host "[release] latest.json:"
-          Get-Content out/latest.json
+          Write-Host "[rel] version=$ver size=$size"
+          $hdr = @{ Authorization = "Bearer $env:GH_TOKEN"; Accept = "application/vnd.github+json" }
+          $rel = $null
+          try { $rel = Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/releases/tags/$tag" -Headers $hdr } catch { $rel = $null }
+          if (-not $rel) {
+            $body = @{ tag_name = $tag; name = "WeDAO $ver"; body = "auto $ver" } | ConvertTo-Json
+            $rel = Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/releases" -Method Post -Headers $hdr -ContentType "application/json" -Body $body
+            Write-Host "[rel] created release id=$($rel.id)"
+          } else { Write-Host "[rel] existing release id=$($rel.id)" }
+          $upload = "https://uploads.github.com/repos/$repo/releases/$($rel.id)/assets?name=TAICORE-Setup.exe"
+          curl.exe -sS --fail --max-time 1800 -X POST -H "Authorization: Bearer $env:GH_TOKEN" -H "Content-Type: application/octet-stream" --data-binary "@out/TAICORE-Setup.exe" $upload
+          if ($LASTEXITCODE -ne 0) { throw "asset upload failed" }
+          $upload2 = "https://uploads.github.com/repos/$repo/releases/$($rel.id)/assets?name=latest.json"
+          curl.exe -sS --fail --max-time 120 -X POST -H "Authorization: Bearer $env:GH_TOKEN" -H "Content-Type: application/json" --data-binary "@out/latest.json" $upload2
+          Write-Host "[rel] done"
