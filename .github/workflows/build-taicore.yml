@@ -1,5 +1,8 @@
 name: build-taicore
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
     inputs:
