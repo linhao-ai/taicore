@@ -1,4 +1,0 @@
-# taicore-license bundle：挂载 Node 半边（空 apply），行为全在 client
-- insert:
-    - id: taicore-license
-      name: 'taicore-license'

@@ -1,0 +1,4 @@
+# taicore-services：应用启动时拉起本地工具服务
+- insert:
+    - id: taicore-services
+      name: taicore-services
