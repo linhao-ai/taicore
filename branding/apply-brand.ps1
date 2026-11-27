@@ -231,3 +231,21 @@ if ((Test-Path $wiAsset) -and (Test-Path $assetDir)) {
   Copy-Item $wiAsset (Join-Path $assetDir 'wedao.ico') -Force
   Write-Host '[ok] wedao.ico -> dsh-desktop/assets'
 }
+
+
+# WEDAO_ASSET_ICONS：替换鲸鱼图标（标题栏/头像/托盘/手机）
+$brand = Join-Path $Branding 'branding/icons'
+$dshAssets = Join-Path $Upstream 'dsh-desktop/assets'
+if ((Test-Path $brand) -and (Test-Path $dshAssets)) {
+  Copy-Item (Join-Path $brand 'brand-900.png') (Join-Path $dshAssets 'icon.png') -Force
+  Copy-Item (Join-Path $brand 'brand-900.jpg') (Join-Path $dshAssets 'icon.jpg') -Force
+  Copy-Item (Join-Path $brand 'brand-256.png') (Join-Path $dshAssets 'tray-icon.png') -Force
+  Copy-Item (Join-Path $brand 'wedao_win.ico') (Join-Path $dshAssets 'icon.ico') -Force
+  Write-Host '[ok] brand icons -> dsh-desktop/assets'
+}
+$mob = Join-Path $Upstream 'dsh-desktop/mobile-gateway/public'
+if ((Test-Path $brand) -and (Test-Path $mob)) {
+  Copy-Item (Join-Path $brand 'brand-192.png') (Join-Path $mob 'icon-192.png') -Force
+  Copy-Item (Join-Path $brand 'brand-512.png') (Join-Path $mob 'icon-512.png') -Force
+  Write-Host '[ok] brand icons -> mobile-gateway/public'
+}
