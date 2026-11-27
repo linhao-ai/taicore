@@ -21,6 +21,19 @@ const secretId = process.env.COS_SECRET_ID;
 const secretKey = process.env.COS_SECRET_KEY;
 if (!secretId || !secretKey) { console.error('缺少 COS 凭据'); process.exit(1); }
 
+// 对齐 COS 服务器时间，避免 runner 时钟偏差导致 403
+try {
+  const host = 'taicore-1453181681.cos.ap-guangzhou.myqcloud.com';
+  const head = await fetch('https://' + host + '/', { method: 'HEAD' });
+  const dateStr = head.headers.get('date');
+  if (dateStr) {
+    const serverSec = Math.floor(new Date(dateStr).getTime() / 1000);
+    const skew = serverSec - Math.floor(Date.now() / 1000);
+    process.env.COS_NOW = String(serverSec);
+    console.log('[cos] server skew seconds:', skew);
+  }
+} catch (e) { console.log('[cos] server time probe failed:', e.message); }
+
 const buf = fs.readFileSync(file);
 const sha = crypto.createHash('sha256').update(buf).digest('hex');
 const sizes = buf.length;
