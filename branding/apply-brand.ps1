@@ -222,3 +222,12 @@ if (Test-Path $regNoLic) {
 }
 $licDir = Join-Path $Upstream 'dsh-desktop/assets/plugins/taicore-license'
 if (Test-Path $licDir) { Remove-Item $licDir -Recurse -Force -ErrorAction SilentlyContinue; Write-Host '[ok] taicore-license removed' }
+
+
+# WEDAO_SHORTCUT_ICON：把品牌 ico 放进 assets，供快捷方式使用
+$wiAsset = Join-Path $Branding 'branding/icons/wedao.ico'
+$assetDir = Join-Path $Upstream 'dsh-desktop/assets'
+if ((Test-Path $wiAsset) -and (Test-Path $assetDir)) {
+  Copy-Item $wiAsset (Join-Path $assetDir 'wedao.ico') -Force
+  Write-Host '[ok] wedao.ico -> dsh-desktop/assets'
+}
