@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 // 为道 WeDAO 服务管理器（按需启动 + 空闲回收）
 // 常驻内存约 25MB，替代 4 个常驻服务（约 1GB）
 import http from 'node:http';
@@ -10,7 +11,7 @@ import os from 'node:os';
 const PORT = Number(process.env.SM_PORT || 8799);
 const IDLE_MS = Number(process.env.SM_IDLE_MIN || 10) * 60 * 1000;
 const PERSIST_SERVICES = new Set(['account']); // 常驻：账号服务不自动回收（手机端依赖）
-const ROOT = process.env.SM_ROOT || 'D:\\Users\\YC\\Documents\\deepseek-harness\\default-workspace\\seed';
+const ROOT = process.env.SM_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const NODE = process.execPath;
 

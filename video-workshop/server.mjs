@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 // 钛核 · 视频工坊（本地）
 // 启动：node server.mjs  然后浏览器打开 http://127.0.0.1:8790
 import http from 'node:http';
@@ -6,7 +7,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { renderVideo, renderVideoBatch } from './lib/render.mjs';
 
-const HERE = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8790);
 const JOBS = path.join(HERE, 'jobs');
 const OUT = path.join(HERE, 'output');

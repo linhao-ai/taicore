@@ -1,9 +1,10 @@
+import { fileURLToPath } from 'node:url';
 // 钛核 · 一键出图（本地静态服务）
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const HERE = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8795);
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png' };
 

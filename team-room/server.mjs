@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 // 钛核 · AI 员工团队（本地）
 // 员工（角色提示词）+ 单聊 + 群聊（多员工依次发言 + 主持人汇总）
 import http from 'node:http';
@@ -6,7 +7,7 @@ import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
 
-const HERE = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8796);
 const DATA_DIR = path.join(os.homedir(), '.dsh', 'taicore');
 const STAFF_FILE = path.join(DATA_DIR, 'team-staff.json');

@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 // 为道 WeDAO 账号服务（1.3.1 基础版）
 // 手机号验证码登录 + 微信扫码（预留）+ 设备限制 + 生图计次
 // 数据：%APPDATA%\WeDAO\account\ 下 JSON 存储（后续可换 MySQL）
@@ -8,7 +9,7 @@ import os from 'node:os';
 import crypto from 'node:crypto';
 
 const PORT = Number(process.env.ACC_PORT || 8800);
-const DIR = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+const DIR = path.dirname(fileURLToPath(import.meta.url));
 const DATA = path.join(process.env.APPDATA || os.homedir(), 'WeDAO', 'account');
 fs.mkdirSync(DATA, { recursive: true });
 

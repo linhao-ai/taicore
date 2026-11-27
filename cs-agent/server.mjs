@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 // 钛核 · 智能客服（本地）
 // 知识库 + 检索 + AI 回复生成；数据存本机
 import http from 'node:http';
@@ -6,7 +7,7 @@ import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
 
-const HERE = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8794);
 const DATA_DIR = path.join(os.homedir(), '.dsh', 'taicore');
 const KB_FILE = path.join(DATA_DIR, 'cs-kb.json');

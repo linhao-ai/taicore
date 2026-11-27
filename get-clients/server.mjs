@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 // 钛核 · 获客工作台（本地）
 // 功能：生成获客方案 / 生成触达话术 / 线索管理 / 转化看板
 // 模型：BYOK，调用用户自己的 DeepSeek API Key；无 Key 时用内置模板兜底
@@ -8,7 +9,7 @@ import { loadProfile, saveProfile, profilePrompt } from './lib/profile.mjs';
 import os from 'node:os';
 import crypto from 'node:crypto';
 
-const HERE = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8792);
 const DATA_DIR = path.join(os.homedir(), '.dsh', 'taicore');
 const SETTINGS = path.join(DATA_DIR, 'acquire-settings.json');

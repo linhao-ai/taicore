@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 // 钛核 · 手机访问网关
 // 作用：以局域网地址启动 dsh web，生成带 token 的访问链接与二维码，手机同 WiFi 扫码即可使用。
 import http from 'node:http';
@@ -6,7 +7,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { spawn } from 'node:child_process';
 
-const HERE = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PORT_UI = Number(process.env.UI_PORT || 8766);
 const PORT_WEB = Number(process.env.WEB_PORT || 8765);
 
