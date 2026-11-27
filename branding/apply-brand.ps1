@@ -240,7 +240,9 @@ if ((Test-Path $brand) -and (Test-Path $dshAssets)) {
   Copy-Item (Join-Path $brand 'brand-900.png') (Join-Path $dshAssets 'icon.png') -Force
   Copy-Item (Join-Path $brand 'brand-900.jpg') (Join-Path $dshAssets 'icon.jpg') -Force
   Copy-Item (Join-Path $brand 'brand-256.png') (Join-Path $dshAssets 'tray-icon.png') -Force
-  Copy-Item (Join-Path $brand 'wedao_win.ico') (Join-Path $dshAssets 'icon.ico') -Force
+  $icoSrc = Join-Path $brand 'wedao_win.ico'
+  if (-not (Test-Path $icoSrc)) { $icoSrc = Join-Path $brand 'wedao.ico' }
+  if (Test-Path $icoSrc) { Copy-Item $icoSrc (Join-Path $dshAssets 'icon.ico') -Force }
   Write-Host '[ok] brand icons -> dsh-desktop/assets'
 }
 $mob = Join-Path $Upstream 'dsh-desktop/mobile-gateway/public'
