@@ -212,9 +212,9 @@ Var DshLegacyTmp
 !macroend
 
 
-; WEDAO_SHORTCUT：品牌快捷方式图标（追加，不影响原有宏）
-!macro NSIS_HOOK_POSTINSTALL_WEDAO
-  CreateShortCut "$DESKTOP\为道 WeDAO.lnk" "$INSTDIR\dsh-tauri-app.exe" "" "$INSTDIR\assets\wedao.ico" 0
-  CreateDirectory "$SMPROGRAMS\为道 WeDAO"
-  CreateShortCut "$SMPROGRAMS\为道 WeDAO\为道 WeDAO.lnk" "$INSTDIR\dsh-tauri-app.exe" "" "$INSTDIR\assets\wedao.ico" 0
+; WEDAO_SHORTCUT：品牌快捷方式（POSTINSTALL，路径为 dsh-desktop/assets）
+!macro NSIS_HOOK_POSTINSTALL
+  IfFileExists "$INSTDIR\dsh-desktop\assets\wedao.ico" 0 +3
+    CreateShortCut "$DESKTOP\为道 WeDAO.lnk" "$INSTDIR\dsh-tauri-app.exe" "" "$INSTDIR\dsh-desktop\assets\wedao.ico" 0
+    CreateShortCut "$SMPROGRAMS\为道 WeDAO.lnk" "$INSTDIR\dsh-tauri-app.exe" "" "$INSTDIR\dsh-desktop\assets\wedao.ico" 0
 !macroend
