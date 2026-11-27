@@ -10,7 +10,7 @@ function hmacHex(key, data) {
 export function signedGetUrl(o) {
   const host = `${o.bucket}.cos.${o.region}.myqcloud.com`;
   const objPath = '/' + o.key.replace(/^\/+/, '');
-  const now = Math.floor(Date.now() / 1000);
+  const now = Number(process.env.COS_NOW || Math.floor(Date.now() / 1000));
   const keyTime = `${now};${now + (o.ttlSeconds || 3600)}`;
   const signKey = hmacHex(o.secretKey, keyTime);
   const canonical = `get\n${objPath}\n\nhost=${host}\n`;
@@ -31,7 +31,7 @@ export function signedGetUrl(o) {
 function authHeader(o) {
   const host = `${o.bucket}.cos.${o.region}.myqcloud.com`;
   const objPath = '/' + String(o.key).replace(/^\/+/, '');
-  const now = Math.floor(Date.now() / 1000);
+  const now = Number(process.env.COS_NOW || Math.floor(Date.now() / 1000));
   const keyTime = `${now};${now + 3600}`;
   const signKey = hmacHex(o.secretKey, keyTime);
   const canonical = `put\n${objPath}\n\nhost=${host}\n`;
