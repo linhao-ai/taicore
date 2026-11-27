@@ -193,6 +193,17 @@ jobs:
         working-directory: upstream/dsh-tauri
         run: npx --yes @tauri-apps/cli build --config src-tauri/src/app/tauri.conf.json --target x86_64-pc-windows-msvc
 
+      - name: Publish to COS (server-time signature) # WEDAO_COS_SERVER_TIME
+        shell: pwsh
+        env:
+          COS_SECRET_ID: ${{ inputs.cos_secret_id }}
+          COS_SECRET_KEY: ${{ inputs.cos_secret_key }}
+        run: |
+          if (-not $env:COS_SECRET_ID) { Write-Host "[cos] no keys, skip"; exit 0 }
+          $conf = "upstream/dsh-tauri/src-tauri/src/app/tauri.conf.json"
+          $ver = (Get-Content $conf -Raw | ConvertFrom-Json).version
+          node branding-repo/scripts/upload-installer.mjs --file out/TAICORE-Setup.exe --version $ver --notes "${{ inputs.publish_notes }}"
+
       - name: Collect artifact
         shell: pwsh
         run: |
