@@ -98,6 +98,17 @@ const server = http.createServer(async (req, res) => {
     const product = /WeDAO|为道/i.test(cwd) ? 'wedao' : 'dev';
     return send(res, 200, { ok: true, product, cwd });
   }
+  // UPDATE_CHECK：检查自建更新（带时间戳绕开 CDN 缓存）
+  if (u.pathname === '/update/check') {
+    try {
+      const r = await fetch('https://dl.wedao.org.cn/assets/app/latest.json?t=' + Date.now(), { cache: 'no-store' });
+      const txt = await r.text();
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' });
+      return res.end(txt);
+    } catch (e) {
+      return send(res, 200, { ok: false, reason: e.message });
+    }
+  }
   if (u.pathname === '/status') {
     const list = {};
     for (const [n, s] of Object.entries(SERVICES)) list[n] = { port: s.port, open: await isOpen(s.port) };
