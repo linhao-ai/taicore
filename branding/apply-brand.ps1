@@ -268,3 +268,20 @@ if ((Test-Path $mob2) -and (Test-Path $brand)) {
   Copy-Item (Join-Path $brand 'brand-512.png') (Join-Path $mob2 'icon-512.png') -Force
   Write-Host '[ok] brand icons -> mobile-gateway/public'
 }
+
+
+# WEDAO_ICON_PNGSET：Tauri 会用 32x32/128x128/icon.png 做窗口图标，全部覆盖
+$pngDir = Join-Path $Upstream 'dsh-tauri/src-tauri/icons'
+$pngDir2 = Join-Path $Upstream 'dsh-tauri/src-tauri/src/app/icons'
+$b192 = Join-Path $Branding 'branding/icons/brand-192.png'
+$b256 = Join-Path $Branding 'branding/icons/brand-256.png'
+$b512 = Join-Path $Branding 'branding/icons/brand-512.png'
+foreach ($pd in @($pngDir, $pngDir2)) {
+  if (-not (Test-Path $pd)) { continue }
+  if (Test-Path $b256) { Copy-Item $b256 (Join-Path $pd '32x32.png') -Force; Copy-Item $b256 (Join-Path $pd 'icon.png') -Force }
+  if (Test-Path $b192) { Copy-Item $b192 (Join-Path $pd '128x128.png') -Force }
+  if (Test-Path $b256) { Copy-Item $b256 (Join-Path $pd '128x128@2x.png') -Force }
+  if (Test-Path $b512) { Copy-Item $b512 (Join-Path $pd 'icon-512.png') -Force }
+  if (Test-Path $b256) { Copy-Item $b256 (Join-Path $pd 'tray-icon.png') -Force }
+  Write-Host '[ok] png icon set -> ' $pd
+}
