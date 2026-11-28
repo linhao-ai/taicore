@@ -251,3 +251,20 @@ if ((Test-Path $brand) -and (Test-Path $mob)) {
   Copy-Item (Join-Path $brand 'brand-512.png') (Join-Path $mob 'icon-512.png') -Force
   Write-Host '[ok] brand icons -> mobile-gateway/public'
 }
+
+
+# WEDAO_FRONTEND_ICONS：前端/PWA/移动端图标也换成品牌
+$fe = Join-Path $Upstream 'dsh-desktop/node_modules/@deepseek-ai/dsh-web-frontend/dist'
+if ((Test-Path $fe) -and (Test-Path $brand)) {
+  Copy-Item (Join-Path $brand 'brand-192.png') (Join-Path $fe 'icon-192.png') -Force
+  Copy-Item (Join-Path $brand 'brand-512.png') (Join-Path $fe 'icon-512.png') -Force
+  Copy-Item (Join-Path $brand 'brand-512.png') (Join-Path $fe 'icon-maskable-512.png') -Force
+  Copy-Item (Join-Path $brand 'brand-192.png') (Join-Path $fe 'apple-touch-icon.png') -Force
+  Write-Host '[ok] brand icons -> web-frontend/dist'
+}
+$mob2 = Join-Path $Upstream 'dsh-desktop/mobile-gateway/public'
+if ((Test-Path $mob2) -and (Test-Path $brand)) {
+  Copy-Item (Join-Path $brand 'brand-192.png') (Join-Path $mob2 'icon-192.png') -Force
+  Copy-Item (Join-Path $brand 'brand-512.png') (Join-Path $mob2 'icon-512.png') -Force
+  Write-Host '[ok] brand icons -> mobile-gateway/public'
+}
